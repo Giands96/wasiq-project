@@ -40,7 +40,7 @@ public class User {
 
     public void promoteToAgent(String phoneNumber){
         if(phoneNumber == null || phoneNumber.isBlank()){
-            throw new IllegalArgumentException("Phone number is required to become an Agent.");
+            throw new IllegalArgumentException("El número de telefono es obligatorio para ser un Agente");
         }
         this.phoneNumber = phoneNumber;
         this.role = UserRole.AGENT;
