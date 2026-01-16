@@ -14,20 +14,38 @@ public class User {
     private String fullName;
     private String pictureUrl;      // Avatar desde Google
     private String phoneNumber;    // Número de teléfono del usuario
+    private String password;
 
     //Logica de Negocio
     private UserRole role;
     private LocalDateTime createdAt;
     private boolean active;
 
-    public User(Long id, String email, String googleId, String fullName, String pictureUrl, String phoneNumber, UserRole role, LocalDateTime createdAt, boolean active) {
+    // Para registro
+    public User(String email, String googleId, String fullName, String pictureUrl, String phoneNumber, String password, UserRole role, LocalDateTime createdAt, boolean active) {
         this.email = email;
         this.googleId = googleId;
         this.fullName = fullName;
         this.pictureUrl = pictureUrl;
-        this.role = UserRole.BUYER; // Por defecto, todos los nuevos usuarios son BUYER
+        this.phoneNumber = phoneNumber;
+        this.password = password;
+        this.role = UserRole.BUYER;
         this.createdAt = createdAt;
         this.active = true;
+    }
+
+    // Para persistencia de datos
+    public User(Long id, String email, String googleId, String fullName, String pictureUrl, String phoneNumber, String password, UserRole role, LocalDateTime createdAt, boolean active) {
+        this.id = id; // Aquí sí seteamos el ID
+        this.email = email;
+        this.googleId = googleId;
+        this.fullName = fullName;
+        this.pictureUrl = pictureUrl;
+        this.phoneNumber = phoneNumber;
+        this.password = password;
+        this.role = role;
+        this.createdAt = createdAt;
+        this.active = active;
     }
 
     public boolean canPublish() {
@@ -84,6 +102,14 @@ public class User {
 
     public void setPictureUrl(String pictureUrl) {
         this.pictureUrl = pictureUrl;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getPhoneNumber() {
