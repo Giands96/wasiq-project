@@ -4,7 +4,7 @@ public enum PostStatus {
     // Estados generales
     ACTIVE, INACTIVE,
     // Estados para ventas
-    SOLD, IN_SALE,
+    SOLD,
     // Estados para rentas
-    IN_RENT, RENTED
+    RENTED
 }
