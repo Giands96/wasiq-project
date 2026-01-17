@@ -17,7 +17,8 @@ public class User {
     private String password;
 
     //Logica de Negocio
-    private UserRole role;
+    private UserRole
+            role;
     private LocalDateTime createdAt;
     private boolean active;
 
@@ -36,7 +37,7 @@ public class User {
 
     // Para persistencia de datos
     public User(Long id, String email, String googleId, String fullName, String pictureUrl, String phoneNumber, String password, UserRole role, LocalDateTime createdAt, boolean active) {
-        this.id = id; // Aquí sí seteamos el ID
+        this.id = id;
         this.email = email;
         this.googleId = googleId;
         this.fullName = fullName;
@@ -49,8 +50,8 @@ public class User {
     }
 
     public boolean canPublish() {
-        // el rol debe ser AGENT y para publicar debe tener un número de teléfono válido
-        // a su vez el numero debe ser diferente de nulo y no estar vacío
+        //* el rol debe ser AGENT y para publicar debe tener un número de teléfono válido
+        //* a su vez el numero debe ser diferente de nulo y no estar vacío
         return this.role == UserRole.AGENT &&
                 this.phoneNumber != null &&
                 !this.phoneNumber.isBlank();

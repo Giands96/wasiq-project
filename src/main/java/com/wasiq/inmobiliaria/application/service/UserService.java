@@ -25,8 +25,10 @@ public class UserService implements RegisterUserUseCase {
 
     @Override
     public User registerUser(RegisterUserCommand command) {
-        //! Validar si el email ya está registrado
-        //! si en userRepositoryPort se encuentra un usuario con el email del comando, lanzar una excepción
+
+        //* Validar si el email ya está registrado
+        //* si en userRepositoryPort se encuentra un usuario con el email del comando, lanzar una excepción
+
         if(userRepositoryPort.findByEmail(command.getEmail()).isPresent()){
             throw new IllegalArgumentException("El email" + command.getEmail() + " ya está registrado.");
         }

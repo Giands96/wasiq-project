@@ -9,6 +9,7 @@ public class Lead {
 
     // Mensaje del interesado
     private String message;
+    private LeadStatus status;
     private LocalDateTime createdAt;
 
     // Constructor
@@ -18,6 +19,7 @@ public class Lead {
         this.postId = postId;
         this.buyerId = buyerId;
         this.message = message;
+        this.status = LeadStatus.NEW; // Estado por defecto
         this.createdAt = LocalDateTime.now();
     }
 
@@ -62,5 +64,13 @@ public class Lead {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LeadStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(LeadStatus status) {
+        this.status = status;
     }
 }
