@@ -28,6 +28,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    /*
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder encoder) {
         String password = encoder.encode("password");
@@ -40,6 +41,8 @@ public class SecurityConfig {
 
         return new InMemoryUserDetailsManager(user);
     }
+    */
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
