@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -36,6 +37,8 @@ public class User {
     private String phoneNumber;
     @Column(name = "active")
     private Boolean active;
+    @OneToMany
+    private List<Property> properties;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
