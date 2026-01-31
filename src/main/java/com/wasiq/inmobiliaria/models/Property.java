@@ -37,6 +37,11 @@ public class Property {
     private Double area;
     @Enumerated(EnumType.STRING)
     private OperationType operationType;
+
+    @Enumerated(EnumType.STRING)
+    private PropertyType propertyType;
+
+    @JsonIgnore
     @JoinColumn(name = "owner_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private User owner;
