@@ -22,25 +22,31 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final PasswordEncoder passwordEncoder;
 
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    UserDetailsService userDetailsService(PasswordEncoder encoder) {
+    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
         String password = encoder.encode("password");
-        UserDetails user = User.withUsername("email").password(password).roles("USER").build();
+
+        UserDetails user = User.builder()
+                .username("email")
+                .password(password)
+                .roles("USER")
+                .build();
+
         return new InMemoryUserDetailsManager(user);
     }
 
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests( authRequest ->
                         authRequest.requestMatchers("/property/create", "/property/edit", "/property/edit",
-                                        "user-profile/edit").authenticated()
+                                        "/user-profile/edit").authenticated()
                                 .anyRequest().permitAll()
                 ).sessionManagement( session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin((form) -> form.loginPage("/login").permitAll()
