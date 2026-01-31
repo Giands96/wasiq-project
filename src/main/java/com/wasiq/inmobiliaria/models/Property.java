@@ -1,5 +1,6 @@
 package com.wasiq.inmobiliaria.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -40,8 +42,8 @@ public class Property {
     private User owner;
     @Column(nullable = false, name = "available")
     private Boolean available;
-    @OneToOne(cascade = CascadeType.ALL)
-    private Media imageUrl;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "property")
+    private List<Media> images;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

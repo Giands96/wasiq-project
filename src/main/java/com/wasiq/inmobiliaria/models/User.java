@@ -37,7 +37,7 @@ public class User {
     private String phoneNumber;
     @Column(name = "active")
     private Boolean active;
-    @OneToMany
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Property> properties;
 
     @Column(name = "created_at", nullable = false, updatable = false)
