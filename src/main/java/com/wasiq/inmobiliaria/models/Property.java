@@ -21,20 +21,28 @@ public class Property {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false, name = "title")
     private String title;
+
     @Column(nullable = false, length = 1000, name = "description")
     private String description;
+
     @Column(nullable = false, name = "price")
     private Double price;
+
     @Column(nullable = false, name = "address")
     private String address;
+
     @Column(nullable = false, name = "bedrooms")
     private Integer bedrooms;
+
     @Column(nullable = false, name = "bathrooms")
     private Integer bathrooms;
+
     @Column(nullable = false, name = "area")
     private Double area;
+
     @Enumerated(EnumType.STRING)
     private OperationType operationType;
 
