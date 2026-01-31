@@ -1,3 +1,17 @@
 spring:
   application:
     name: inmobiliaria
+  datasource:
+    url: jdbc:mysql://localhost:3306/inmobiliaria_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  jwt:
+     secret: 2e8c36a9f91daf332fb8cfaa6cb7ca8d0034704d
+     expiration: ${JWT_EXPIRATION_TIME}
+     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION_TIME}
