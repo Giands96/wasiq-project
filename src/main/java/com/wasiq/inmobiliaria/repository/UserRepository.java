@@ -1,5 +1,6 @@
 package com.wasiq.inmobiliaria.repository;
 
+import com.wasiq.inmobiliaria.models.Role;
 import com.wasiq.inmobiliaria.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,7 +10,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
-    Page<User> findByRole(String role, Pageable pageable);
+    Page<User> findByRole(Role role, Pageable pageable);
 
 
 }
