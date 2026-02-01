@@ -47,7 +47,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests( authRequest ->
                         authRequest.requestMatchers("/property/create", "/property/edit", "/property/edit",
-                                        "/user-profile/edit").authenticated()
+                                        "/user-profile/edit","/admin/dashboard").authenticated()
                                 .anyRequest().permitAll()
                 ).sessionManagement( session
                         -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
