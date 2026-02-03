@@ -49,6 +49,9 @@ public class Property {
     @Enumerated(EnumType.STRING)
     private PropertyType propertyType;
 
+    @Column(name = "active")
+    private Boolean active = true;
+
     @JsonIgnore
     @JoinColumn(name = "owner_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
