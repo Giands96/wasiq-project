@@ -17,7 +17,7 @@ public class PropertyController {
     private final PropertyService propertyService;
 
     @GetMapping("/")
-    public ResponseEntity<Page<Property>> getAllProperties(int page, int size) {
+    public ResponseEntity<Page<Property>> getAllProperties(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Page<Property> properties = propertyService.findByTitleContaining("", page, size);
         return ResponseEntity.ok(properties);
     }
