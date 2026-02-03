@@ -24,6 +24,13 @@ public class PropertyService {
         return propertyRepository.findByTitleContaining(title,PageRequest.of(page, size));
     }
 
+    public Property softDeleteProperty(Long propertyId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new RuntimeException("Error found"));
+        property.setActive(false);
+        return propertyRepository.save(property);
+    }
+
 }
 
 

@@ -16,6 +16,5 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     Page<Property> findAllByOrderByIdDesc(Pageable pageable);
     List<Property> findByOperationType(OperationType operationType);
     List<Property> findByPropertyType(PropertyType propertyType);
-
     Page<Property> findByTitleContaining(String title, Pageable pageable);
 }
