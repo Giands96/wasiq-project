@@ -21,7 +21,7 @@ public class PropertyService {
     }
 
     public Page<Property> findByTitleContaining(String title, int page, int size) {
-        return propertyRepository.findByTitleContaining(title,PageRequest.of(page, size));
+        return propertyRepository.findByTitleContainingAndActiveTrue(title,PageRequest.of(page, size));
     }
 
     public Property softDeleteProperty(Long propertyId) {

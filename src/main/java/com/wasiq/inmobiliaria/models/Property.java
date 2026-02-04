@@ -70,6 +70,7 @@ public class Property {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.available = true;
+        this.active = true;
     }
 
     @PostPersist

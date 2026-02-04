@@ -1,5 +1,7 @@
 package com.wasiq.inmobiliaria.controllers;
 
+import com.wasiq.inmobiliaria.controllers.dto.PropertyResponse;
+import com.wasiq.inmobiliaria.controllers.utils.PropertyMapper;
 import com.wasiq.inmobiliaria.models.Property;
 import com.wasiq.inmobiliaria.services.PropertyService;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +17,13 @@ import org.springframework.web.bind.annotation.*;
 public class PropertyController {
 
     private final PropertyService propertyService;
+    private final PropertyMapper propertyMapper;
 
     @GetMapping("/")
-    public ResponseEntity<Page<Property>> getAllProperties(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-        Page<Property> properties = propertyService.findByTitleContaining("", page, size);
-        return ResponseEntity.ok(properties);
+    public ResponseEntity<Page<PropertyResponse>> getAllProperties(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Page<Property> propertiesPage = propertyService.findByTitleContaining("", page, size);
+        Page<PropertyResponse> responsePage = propertiesPage.map(propertyMapper::toResponse);
+        return ResponseEntity.ok(responsePage);
     }
 
     @PostMapping("/create")

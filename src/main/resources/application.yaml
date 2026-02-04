@@ -15,3 +15,8 @@ jwt:
   secret: bWlTdXBlclNlY3JldEtleTEyMzQ1Njc4OTAxMjM0NTY=
   expiration: ${JWT_EXPIRATION_TIME:90000}
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION_TIME:2592000000}
+
+cloudinary:
+  cloud_name: ${CLOUD_NAME}
+  cloud_api_key: ${CLOUD_API_KEY}
+  cloud_api_secret: ${CLOUD_API_SECRET}
