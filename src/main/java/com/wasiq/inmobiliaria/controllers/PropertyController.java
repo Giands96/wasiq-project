@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,11 +27,13 @@ public class PropertyController {
         return ResponseEntity.ok(responsePage);
     }
 
-    @PostMapping("/create")
+    @PostMapping(value="/create", consumes = {"multipart/form-data"})
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
-    public ResponseEntity<Property> createProperty(@RequestBody Property property, Authentication authentication) {
+    public ResponseEntity<Property> createProperty(@RequestPart("property") Property property,
+                                                   @RequestPart(value="file", required = false) MultipartFile file,
+                                                   Authentication authentication) {
         String email = authentication.getName();
-        Property savedProperty = propertyService.saveProperty(property, email);
+        Property savedProperty = propertyService.savePropertyWithImage(property,file, email);
         return ResponseEntity.ok(savedProperty);
     }
 
