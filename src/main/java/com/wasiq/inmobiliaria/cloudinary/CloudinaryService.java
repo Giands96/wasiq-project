@@ -15,7 +15,7 @@ public class CloudinaryService {
     private final Cloudinary cloudinary;
 
     public String uploadFile (MultipartFile file) {
-        Map result;
+        Map result = null;
         try {
             result = cloudinary.uploader().upload(file.getBytes(),Map.of());
         } catch (Exception e){
