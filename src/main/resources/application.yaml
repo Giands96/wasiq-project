@@ -13,7 +13,7 @@ spring:
 
 jwt:
   secret: bWlTdXBlclNlY3JldEtleTEyMzQ1Njc4OTAxMjM0NTY=
-  expiration: ${JWT_EXPIRATION_TIME:90000}
+  expiration: ${JWT_EXPIRATION_TIME:86400000}
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION_TIME:2592000000}
 
 cloudinary:
