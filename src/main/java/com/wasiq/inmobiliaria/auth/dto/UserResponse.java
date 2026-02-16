@@ -1,5 +1,6 @@
 package com.wasiq.inmobiliaria.auth.dto;
 
+import com.wasiq.inmobiliaria.models.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +10,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthResponse {
+public class UserResponse {
 
-    private String token;
-    UserResponse user;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private Role role;
+
 }

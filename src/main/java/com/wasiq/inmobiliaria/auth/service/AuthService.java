@@ -3,6 +3,7 @@ package com.wasiq.inmobiliaria.auth.service;
 import com.wasiq.inmobiliaria.auth.dto.AuthResponse;
 import com.wasiq.inmobiliaria.auth.dto.LoginRequest;
 import com.wasiq.inmobiliaria.auth.dto.RegisterRequest;
+import com.wasiq.inmobiliaria.auth.dto.UserResponse;
 import com.wasiq.inmobiliaria.jwt.JwtService;
 import com.wasiq.inmobiliaria.models.Role;
 import com.wasiq.inmobiliaria.models.User;
@@ -36,9 +37,11 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
-
         String token = jwtService.generateToken(user);
-        return new AuthResponse(token);
+        return AuthResponse.builder()
+                .token(token)
+                .user(mapToUserResponse(user))
+                .build();
     }
 
     public AuthResponse authenticate(LoginRequest request) throws Exception{
@@ -51,8 +54,15 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Bad credentials"));
 
         String token = jwtService.generateToken(user);
-        return new AuthResponse(token);
+        return AuthResponse.builder().token(token).user(mapToUserResponse(user)).build();
+    }
 
-
+    private UserResponse mapToUserResponse(User user) {
+        return UserResponse.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
     }
 }

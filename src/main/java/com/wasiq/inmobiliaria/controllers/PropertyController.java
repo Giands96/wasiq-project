@@ -46,11 +46,24 @@ public class PropertyController {
                 .body(propertyMapper.toResponse(savedProperty));
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        propertyService.softDeleteProperty(id);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<PropertyResponse> updateProperty(
+            @PathVariable Long id,
+            @RequestPart(value = "property") @Valid Property property,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            Authentication authentication) {
+        String email = authentication.getName();
+        Property updatedProperty = propertyService.updateProperty(id, property, file, email);
+
+        return ResponseEntity.ok(propertyMapper.toResponse(updatedProperty));
     }
 
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<Void> deleteProperty(@PathVariable Long id, Authentication authentication) {
+        String email = authentication.getName();
+        propertyService.softDeleteProperty(id, email);
+        return ResponseEntity.noContent().build();
+    }
 }

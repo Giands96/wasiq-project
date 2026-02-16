@@ -4,6 +4,9 @@ import com.wasiq.inmobiliaria.auth.dto.AuthResponse;
 import com.wasiq.inmobiliaria.auth.dto.LoginRequest;
 import com.wasiq.inmobiliaria.auth.dto.RegisterRequest;
 import com.wasiq.inmobiliaria.auth.service.AuthService;
+import com.wasiq.inmobiliaria.jwt.JwtService;
+import com.wasiq.inmobiliaria.models.User;
+import com.wasiq.inmobiliaria.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @PostMapping("/test")
     public String testAuth() {
@@ -31,7 +36,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody  LoginRequest request) throws Exception {
-        AuthResponse response = authService.authenticate(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authService.authenticate(request));
     }
 }
