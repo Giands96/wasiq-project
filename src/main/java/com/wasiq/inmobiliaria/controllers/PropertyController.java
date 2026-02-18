@@ -7,14 +7,17 @@ import com.wasiq.inmobiliaria.services.PropertyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,17 +35,20 @@ public class PropertyController {
     }
 
     @PostMapping(value = "/create",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<PropertyResponse> createProperty(
             @RequestPart("property") @Valid Property property,
-            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
             Authentication authentication) {
-        String email = authentication.getName();
-        Property savedProperty = propertyService.savePropertyWithImage(property, file, email);
 
-        return ResponseEntity.created(URI.create("/api/properties/" + savedProperty.getId()))
+        if (files != null && files.size() > 4) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Solo se permiten un máximo de 4 imágenes por propiedad");
+        }
+        String email = authentication.getName();
+        Property savedProperty = propertyService.savePropertyWithImage(property, files, email);
+
+        return ResponseEntity.created(URI.create("/properties/" + savedProperty.getId()))
                 .body(propertyMapper.toResponse(savedProperty));
     }
 
@@ -51,10 +57,11 @@ public class PropertyController {
     public ResponseEntity<PropertyResponse> updateProperty(
             @PathVariable Long id,
             @RequestPart(value = "property") @Valid Property property,
-            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            @RequestParam(value = "keptImageIds", required = false) List<Long> keptImageIds,
             Authentication authentication) {
         String email = authentication.getName();
-        Property updatedProperty = propertyService.updateProperty(id, property, file, email);
+        Property updatedProperty = propertyService.updateProperty(id, property, files, keptImageIds, email);
 
         return ResponseEntity.ok(propertyMapper.toResponse(updatedProperty));
     }

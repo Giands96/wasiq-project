@@ -58,7 +58,7 @@ public class Property {
     private User owner;
     @Column(nullable = false, name = "available")
     private Boolean available;
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "property")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "property", orphanRemoval = true)
     private List<Media> images;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -53,16 +54,24 @@ public class PropertyService {
         return propertyRepository.save(property);
     }
     @Transactional
-    public Property savePropertyWithImage(Property property, MultipartFile file, String email) {
-        Property saveProperty = saveProperty(property, email);
-        if (file != null && !file.isEmpty()) {
-            uploadImage(saveProperty.getId(), file);
+    public Property savePropertyWithImage(Property property, List<MultipartFile> files, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        property.setOwner(user);
+        // Guardar la propiedad para tener el ID
+        Property savedProperty = propertyRepository.save(property);
+
+        // Si hay archivos, los iteramos y subimos uno por uno
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                uploadImage(savedProperty.getId(), file);
+            }
         }
-        return saveProperty;
+        return savedProperty;
     }
 
     @Transactional
-    public Property updateProperty(Long propertyId, Property updatedProperty, MultipartFile file, String email) {
+    public Property updateProperty(Long propertyId, Property updatedProperty, List<MultipartFile> files,List<Long> keptImageIds, String email) {
 
         Property existingProperty = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new RuntimeException("Property not found"));
@@ -82,13 +91,18 @@ public class PropertyService {
         existingProperty.setPropertyType(updatedProperty.getPropertyType());
         existingProperty.setAvailable(updatedProperty.getAvailable());
 
+        List<Long> idsKept = keptImageIds == null ? new ArrayList<>() : keptImageIds;
+        existingProperty.getImages().removeIf(image -> !idsKept.contains(image.getId()));
+
         Property savedProperty = propertyRepository.save(existingProperty);
 
-        if (file != null && !file.isEmpty()) {
-            uploadImage(savedProperty.getId(), file);
+        if (files != null && !files.isEmpty()) {
+           for(MultipartFile file : files) {
+               uploadImage(savedProperty.getId(), file);
+           }
         }
 
-        return savedProperty;
+        return propertyRepository.save(existingProperty);
     }
 
 
@@ -107,7 +121,7 @@ public class PropertyService {
                 .orElseThrow(() -> new RuntimeException("Property not found"));
 
         if (user.getRole() != Role.ADMIN && (propertyDB.getOwner() == null || !propertyDB.getOwner().getEmail().equals(email))) {
-            throw new RuntimeException("No tienes permiso para eliminar esta propiedad");
+            throw new UnauthorizedException("No tienes permiso para eliminar esta propiedad");
         }
 
         propertyDB.setActive(false);
