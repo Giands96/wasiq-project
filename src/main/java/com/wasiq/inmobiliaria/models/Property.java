@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -52,6 +53,9 @@ public class Property {
     @Column(name = "active")
     private Boolean active = true;
 
+    @Column(unique = true, nullable = false, name = "slug")
+    private String slug;
+
     @JsonIgnore
     @JoinColumn(name = "owner_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -71,6 +75,12 @@ public class Property {
         this.createdAt = LocalDateTime.now();
         this.available = true;
         this.active = true;
+        if(this.title != null) {
+            String baseSlug = this.title.toLowerCase().replaceAll("[^a-z0-9\\s-]","").replaceAll("\\s+", "-").replaceAll("-+", "-");
+            //* Agregar un sufijo único para garantizar la unicidad del slug *//
+            String uniqueId = UUID.randomUUID().toString().substring(0,6);
+            this.slug = baseSlug + "-" + uniqueId;
+        }
     }
 
     @PostPersist
