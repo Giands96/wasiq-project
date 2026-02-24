@@ -71,9 +71,11 @@ public class PropertyService {
     }
 
     @Transactional
-    public Property updateProperty(Long propertyId, Property updatedProperty, List<MultipartFile> files,List<Long> keptImageIds, String email) {
+    public Property updateProperty(String slug, Property updatedProperty, List<MultipartFile> files,
+                                   List<Long> keptImageIds,
+                                   String email) {
 
-        Property existingProperty = propertyRepository.findById(propertyId)
+        Property existingProperty = propertyRepository.findBySlugAndActiveTrue(slug)
                 .orElseThrow(() -> new RuntimeException("Property not found"));
 
         if(existingProperty.getOwner() != null && !existingProperty.getOwner().getEmail().equals(email)) {
@@ -105,6 +107,11 @@ public class PropertyService {
         return propertyRepository.save(existingProperty);
     }
 
+    public Property findBySlugAndActiveTrue(String slug) {
+        return propertyRepository.findBySlugAndActiveTrue(slug)
+                .orElseThrow(() -> new RuntimeException("Property not found"));
+
+    }
 
 
 
@@ -112,12 +119,12 @@ public class PropertyService {
         return propertyRepository.findByTitleContainingAndActiveTrue(title,PageRequest.of(page, size));
     }
 
-    public Property softDeleteProperty(Long propertyId, String email) {
+    public Property softDeleteProperty(String slug, String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Property propertyDB = propertyRepository.findById(propertyId)
+        Property propertyDB = propertyRepository.findBySlugAndActiveTrue(slug)
                 .orElseThrow(() -> new RuntimeException("Property not found"));
 
         if (user.getRole() != Role.ADMIN && (propertyDB.getOwner() == null || !propertyDB.getOwner().getEmail().equals(email))) {
