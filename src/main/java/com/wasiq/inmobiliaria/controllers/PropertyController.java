@@ -28,10 +28,18 @@ public class PropertyController {
     private final PropertyMapper propertyMapper;
 
     @GetMapping("/")
-    public ResponseEntity<Page<PropertyResponse>> getAllProperties(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-        Page<Property> propertiesPage = propertyService.findByTitleContaining("", page, size);
+    public ResponseEntity<Page<PropertyResponse>> getAllProperties(@RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "10") int size,
+                                                                   @RequestParam(defaultValue = "") String title) {
+        Page<Property> propertiesPage = propertyService.findByTitleContaining(title, page, size);
         Page<PropertyResponse> responsePage = propertiesPage.map(propertyMapper::toResponse);
         return ResponseEntity.ok(responsePage);
+    }
+
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<PropertyResponse> getPropertyBySlug(@PathVariable String slug ) {
+        Property property = propertyService.findBySlugAndActiveTrue(slug);
+        return ResponseEntity.ok(propertyMapper.toResponse(property));
     }
 
     @PostMapping(value = "/create",
@@ -52,25 +60,25 @@ public class PropertyController {
                 .body(propertyMapper.toResponse(savedProperty));
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/update/{slug}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<PropertyResponse> updateProperty(
-            @PathVariable Long id,
+            @PathVariable String slug,
             @RequestPart(value = "property") @Valid Property property,
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @RequestParam(value = "keptImageIds", required = false) List<Long> keptImageIds,
             Authentication authentication) {
         String email = authentication.getName();
-        Property updatedProperty = propertyService.updateProperty(id, property, files, keptImageIds, email);
+        Property updatedProperty = propertyService.updateProperty(slug, property, files, keptImageIds, email);
 
         return ResponseEntity.ok(propertyMapper.toResponse(updatedProperty));
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/delete/{slug}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    public ResponseEntity<Void> deleteProperty(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<Void> deleteProperty(@PathVariable String slug, Authentication authentication) {
         String email = authentication.getName();
-        propertyService.softDeleteProperty(id, email);
+        propertyService.softDeleteProperty(slug, email);
         return ResponseEntity.noContent().build();
     }
 }
