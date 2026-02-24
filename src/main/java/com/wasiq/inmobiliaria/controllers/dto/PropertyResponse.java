@@ -23,9 +23,11 @@ public class PropertyResponse {
     private OperationType operationType;
     private PropertyType propertyType;
     private Boolean available;
+    private String slug;
     private List<String> images;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String ownerName;
     private String ownerEmail;
+    private Long ownerId;
 }
