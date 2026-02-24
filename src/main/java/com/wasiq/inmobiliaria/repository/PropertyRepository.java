@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PropertyRepository extends JpaRepository<Property, Long> {
@@ -17,4 +18,5 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     List<Property> findByOperationType(OperationType operationType);
     List<Property> findByPropertyType(PropertyType propertyType);
     Page<Property> findByTitleContainingAndActiveTrue(String title, Pageable pageable);
+    Optional<Property> findBySlugAndActiveTrue(String slug);
 }
