@@ -49,7 +49,7 @@ public class SecurityConfig {
                     // Acceso Público: Login y Registro
                     authRequest.requestMatchers("/auth/**").permitAll();
                     // Acceso Público: Ver propiedades (Solo GET)
-                    authRequest.requestMatchers(HttpMethod.GET, "/properties/**").permitAll();
+                    authRequest.requestMatchers(HttpMethod.GET, "/properties/**","/properties").permitAll();
 
                     // Acceso Privado: Todo lo demás requiere token
                     // (Aquí caen POST /properties, DELETE /properties, /users, etc.)

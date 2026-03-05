@@ -2,16 +2,15 @@ package com.wasiq.inmobiliaria.services;
 
 import com.wasiq.inmobiliaria.cloudinary.CloudinaryService;
 import com.wasiq.inmobiliaria.controllers.exceptions.UnauthorizedException;
-import com.wasiq.inmobiliaria.models.Media;
-import com.wasiq.inmobiliaria.models.Property;
-import com.wasiq.inmobiliaria.models.Role;
-import com.wasiq.inmobiliaria.models.User;
+import com.wasiq.inmobiliaria.models.*;
 import com.wasiq.inmobiliaria.repository.PropertyRepository;
 import com.wasiq.inmobiliaria.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -136,6 +135,34 @@ public class PropertyService {
         return propertyRepository.save(propertyDB);
     }
 
+    public Page<Property> getFilteredProperties(
+            String query, String propertyTypeStr, String operationTypeStr,
+            Double minPrice, Double maxPrice, Integer rooms, Integer bathrooms,
+            int page, int size) {
+
+        PropertyType propertyType = null;
+        if(propertyTypeStr != null) {
+            try {
+                propertyType = PropertyType.valueOf(propertyTypeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid property type: " + propertyTypeStr);
+            }
+        }
+        OperationType operationType = null;
+        if (operationTypeStr != null && !operationTypeStr.trim().isEmpty()) {
+            try {
+                operationType = OperationType.valueOf(operationTypeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Ignoramos errores de tipeo
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+
+        return propertyRepository.findWithDynamicFilters(
+                query, propertyType, operationType,
+                minPrice, maxPrice, rooms, bathrooms, pageable);
+    }
 
 }
 

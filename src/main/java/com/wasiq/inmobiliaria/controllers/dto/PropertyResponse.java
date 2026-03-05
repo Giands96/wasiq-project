@@ -30,4 +30,5 @@ public class PropertyResponse {
     private String ownerName;
     private String ownerEmail;
     private Long ownerId;
+    private String ownerPhone;
 }

@@ -28,13 +28,23 @@ public class PropertyController {
     private final PropertyMapper propertyMapper;
 
     @GetMapping("/")
-    public ResponseEntity<Page<PropertyResponse>> getAllProperties(@RequestParam(defaultValue = "0") int page,
-                                                                   @RequestParam(defaultValue = "10") int size,
-                                                                   @RequestParam(defaultValue = "") String title) {
-        Page<Property> propertiesPage = propertyService.findByTitleContaining(title, page, size);
-        Page<PropertyResponse> responsePage = propertiesPage.map(propertyMapper::toResponse);
-        return ResponseEntity.ok(responsePage);
+    public ResponseEntity<Page<PropertyResponse>> getProperties(
+            @RequestParam(value = "query", required = false) String query,
+            @RequestParam(value = "propertyType", required = false) String propertyType,
+            @RequestParam(value = "operationType", required = false) String operationType,
+            @RequestParam(value = "minPrice", required = false) Double minPrice,
+            @RequestParam(value = "maxPrice", required = false) Double maxPrice,
+            @RequestParam(value = "rooms", required = false) Integer rooms,
+            @RequestParam(value = "bathrooms", required = false) Integer bathrooms,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        Page<Property> propertiesPage = propertyService.getFilteredProperties(
+                query, propertyType, operationType, minPrice, maxPrice, rooms, bathrooms, page, size);
+
+        return ResponseEntity.ok(propertiesPage.map(propertyMapper::toResponse));
     }
+
 
     @GetMapping("/slug/{slug}")
     public ResponseEntity<PropertyResponse> getPropertyBySlug(@PathVariable String slug ) {

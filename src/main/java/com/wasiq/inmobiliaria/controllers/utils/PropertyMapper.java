@@ -32,6 +32,7 @@ public class PropertyMapper {
                 .ownerId(property.getOwner().getId())
                 .ownerName(property.getOwner().getFirstName() + " " + property.getOwner().getLastName())
                 .ownerEmail(property.getOwner().getEmail())
+                .ownerPhone(property.getOwner().getPhoneNumber())
                 // Transformar la Lista de Objetos Media a Lista de Strings (URLs)
                 .images(property.getImages() != null ?
                 property.getImages().stream().map(Media::getUrl).collect(Collectors.toList()) :
