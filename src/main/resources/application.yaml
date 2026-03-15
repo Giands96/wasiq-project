@@ -2,10 +2,10 @@ spring:
   application:
     name: inmobiliaria
   datasource:
-    url: jdbc:mysql://localhost:3306/inmobiliaria_db
+    url: jdbc:postgresql://localhost:5432/inmobiliaria_db
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
