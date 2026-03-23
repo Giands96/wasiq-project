@@ -24,7 +24,6 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtService jwtService;
-    private final UserRepository userRepository;
 
     @PostMapping("/test")
     public String testAuth() {
@@ -65,6 +64,15 @@ public class AuthController {
         response.addCookie(cookie);
 
         return ResponseEntity.ok(authResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("auth-token", null);
+        cookie.setMaxAge(0); // Eliminar la cookie
+        cookie.setPath("/");
+        response.addCookie(cookie);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/profile/update/{id}")
