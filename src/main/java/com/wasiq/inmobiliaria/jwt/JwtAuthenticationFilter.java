@@ -2,6 +2,7 @@ package com.wasiq.inmobiliaria.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,19 +28,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
 
-        //* Verificación Header
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+        String jwt = null;
+
+        //* Extraer jwt desde las cookies
+        Cookie[] cookies = request.getCookies();
+        if(cookies != null) {
+            for(Cookie cookie : cookies){
+                if("auth-token".equals(cookie.getName())){
+                    jwt = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if(cookies == null || jwt == null){
             filterChain.doFilter(request, response);
             return;
         }
 
-        //* Extraer el token
-        jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
+        final String userEmail;
+        try {
+            userEmail = jwtService.extractUsername(jwt);
+        } catch (Exception e) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         //*  Si hay email y el usuario No eststá autenticado aun en el contexto
         if(userEmail != null && SecurityContextHolder.getContext().getAuthentication()==null){
