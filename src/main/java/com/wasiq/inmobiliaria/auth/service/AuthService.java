@@ -1,17 +1,14 @@
 package com.wasiq.inmobiliaria.auth.service;
 
-import com.wasiq.inmobiliaria.auth.dto.AuthResponse;
-import com.wasiq.inmobiliaria.auth.dto.LoginRequest;
-import com.wasiq.inmobiliaria.auth.dto.RegisterRequest;
-import com.wasiq.inmobiliaria.auth.dto.UserResponse;
+import com.wasiq.inmobiliaria.auth.dto.*;
 import com.wasiq.inmobiliaria.jwt.JwtService;
 import com.wasiq.inmobiliaria.models.Role;
 import com.wasiq.inmobiliaria.models.User;
 import com.wasiq.inmobiliaria.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,15 +34,12 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
-        String token = jwtService.generateToken(user);
         return AuthResponse.builder()
-                .token(token)
                 .user(mapToUserResponse(user))
                 .build();
     }
 
-    public AuthResponse authenticate(LoginRequest request) throws Exception{
-
+    public AuthResponse authenticate(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
@@ -53,8 +47,26 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Bad credentials"));
 
-        String token = jwtService.generateToken(user);
-        return AuthResponse.builder().token(token).user(mapToUserResponse(user)).build();
+        return AuthResponse.builder()
+                .user(mapToUserResponse(user))
+                .build();
+    }
+
+    public AuthResponse updateUser(Long userId, UpdateUserRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
+
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+        userRepository.save(user);
+        return AuthResponse.builder()
+                .user(mapToUserResponse(user))
+                .build();
     }
 
     private UserResponse mapToUserResponse(User user) {
@@ -65,5 +77,10 @@ public class AuthService {
                 .role(user.getRole())
                 .id(user.getId())
                 .build();
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }
