@@ -27,6 +27,18 @@ public class UserService {
         );
     }
 
+    public User updateUser(Long id, User user) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        //* Si el usuario solo quiere actualizar su telefono, se actualiza solo el telefono, etc... */
+        if(user.getPassword() != null) existingUser.setPassword(user.getPassword());
+        //*
+        if(user.getPhoneNumber() != null) existingUser.setPhoneNumber(user.getPhoneNumber());
+
+
+        return userRepository.save(existingUser);
+    }
+
     public Page<User> findAllByOrderByIdDesc(int page, int size) {
         return userRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
     }
