@@ -56,11 +56,10 @@ public class AuthController {
 
         Cookie cookie = new Cookie("auth-token", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);     //* Solo se enviará a través de HTTPS
-        cookie.setPath("/");        //* Disponible para toda la aplicación
-        cookie.setMaxAge(86400);    //* 1 día de duración
-
-        //* Agregar la cookie a la respuesta
+        cookie.setSecure(true);
+        cookie.setAttribute("SameSite", "None");
+        cookie.setPath("/");
+        cookie.setMaxAge(86400);
         response.addCookie(cookie);
 
         return ResponseEntity.ok(authResponse);
@@ -96,7 +95,8 @@ public class AuthController {
         String token = jwtService.generateToken(updatedUser);
         Cookie cookie = new Cookie("auth-token", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(true);
+        cookie.setAttribute("SameSite", "None");
         cookie.setPath("/");
         cookie.setMaxAge(86400);
         response.addCookie(cookie);
