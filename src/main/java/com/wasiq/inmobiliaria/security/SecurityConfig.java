@@ -30,9 +30,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource cors() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://wasiq-project-front.vercel.app")); // Origen del Frontend
+        configuration.setAllowedOrigins(List.of("https://wasiq-project-front.vercel.app"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+
+        // ¡Aquí está la magia! Sin asteriscos.
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -63,9 +66,5 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-    //* Cors
-
-
 
 }
