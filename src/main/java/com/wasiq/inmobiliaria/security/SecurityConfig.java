@@ -34,7 +34,15 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST","PATCH", "PUT", "DELETE", "OPTIONS"));
 
         // ¡Aquí está la magia! Sin asteriscos.
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers",
+                "Cookie"
+        ));
         configuration.setExposedHeaders(List.of("Set-Cookie"));  // necesario si usas HttpOnly cookies
         configuration.setAllowCredentials(true);
 
