@@ -28,14 +28,14 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
 
     @Bean
-    public CorsConfigurationSource cors() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("https://wasiq-project-front.vercel.app"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST","PATCH", "PUT", "DELETE", "OPTIONS"));
 
         // ¡Aquí está la magia! Sin asteriscos.
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
-
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Set-Cookie"));  // necesario si usas HttpOnly cookies
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -46,13 +46,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(cors()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 //.cors(alllowCredentials -> alllowCredentials.equals(true))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authRequest -> {
                     // Acceso Público: Login y Registro
                     authRequest.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
-                    authRequest.requestMatchers("/auth/**").permitAll();
+                    authRequest.requestMatchers(    "/auth/**").permitAll();
                     // Acceso Público: Ver propiedades (Solo GET)
                     authRequest.requestMatchers(HttpMethod.GET, "/properties/**","/properties").permitAll();
 
