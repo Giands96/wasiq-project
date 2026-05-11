@@ -36,8 +36,8 @@ public class AuthController {
         String token = jwtService.generateToken(user);
         Cookie cookie = new Cookie("auth-token", token );
         cookie.setHttpOnly(true);
-        cookie.setAttribute("SameSite", "Strict"); //* Evita que la cookie se envíe en solicitudes cross-site
-        cookie.setSecure(false);     //* Solo se enviará a través de HTTPS
+        cookie.setAttribute("SameSite", "None");
+        cookie.setSecure(true);     //* Solo se enviará a través de HTTPS
         cookie.setPath("/");        //* Disponible para toda la aplicación
         cookie.setMaxAge(86400);    //* 1 día de duración
 
@@ -69,6 +69,9 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("auth-token", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setAttribute("SameSite", "None");
         cookie.setMaxAge(0); // Eliminar la cookie
         cookie.setPath("/");
         response.addCookie(cookie);
