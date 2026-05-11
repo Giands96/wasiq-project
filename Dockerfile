@@ -1,6 +1,9 @@
 FROM amazoncorretto:21-alpine AS builder
 WORKDIR /app
 COPY . .
+
+RUN chmod +x ./mvnw
+
 RUN ./mvnw clean package -DskipTests
 
 FROM amazoncorretto:21-alpine
