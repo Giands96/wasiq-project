@@ -8,7 +8,6 @@ import com.wasiq.inmobiliaria.auth.service.AuthService;
 import com.wasiq.inmobiliaria.jwt.JwtService;
 import com.wasiq.inmobiliaria.models.Role;
 import com.wasiq.inmobiliaria.models.User;
-import com.wasiq.inmobiliaria.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +36,8 @@ public class AuthController {
         String token = jwtService.generateToken(user);
         Cookie cookie = new Cookie("auth-token", token );
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);     //* Solo se enviará a través de HTTPS
+        cookie.setAttribute("SameSite", "Strict"); //* Evita que la cookie se envíe en solicitudes cross-site
+        cookie.setSecure(false);     //* Solo se enviará a través de HTTPS
         cookie.setPath("/");        //* Disponible para toda la aplicación
         cookie.setMaxAge(86400);    //* 1 día de duración
 
@@ -56,7 +56,7 @@ public class AuthController {
 
         Cookie cookie = new Cookie("auth-token", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);     //* Solo se enviará a través de HTTPS
+        cookie.setSecure(false);     //* Solo se enviará a través de HTTPS
         cookie.setPath("/");        //* Disponible para toda la aplicación
         cookie.setMaxAge(86400);    //* 1 día de duración
 
@@ -93,7 +93,7 @@ public class AuthController {
         String token = jwtService.generateToken(updatedUser);
         Cookie cookie = new Cookie("auth-token", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setPath("/");
         cookie.setMaxAge(86400);
         response.addCookie(cookie);

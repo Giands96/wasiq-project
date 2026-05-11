@@ -1,5 +1,6 @@
 package com.wasiq.inmobiliaria.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +24,7 @@ public class Media {
     @Column(nullable = false, name = "type")
     private String type; // e.g., "image/jpeg", "video/mp4"
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "property_id", nullable = false)
     private Property property  ; // ID de la propiedad a la que pertenece el medio
 

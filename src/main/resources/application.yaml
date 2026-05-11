@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
 
 jwt:
@@ -20,3 +20,6 @@ cloudinary:
   cloud_name: ${CLOUD_NAME}
   cloud_api_key: ${CLOUD_API_KEY}
   cloud_api_secret: ${CLOUD_API_SECRET}
+
+admin:
+  email: ${ADMIN_EMAIL}

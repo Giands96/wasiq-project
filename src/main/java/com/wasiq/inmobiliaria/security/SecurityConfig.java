@@ -44,7 +44,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(cors()))
-                .cors(alllowCredentials -> alllowCredentials.equals(true))
+                //.cors(alllowCredentials -> alllowCredentials.equals(true))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authRequest -> {
                     // Acceso Público: Login y Registro

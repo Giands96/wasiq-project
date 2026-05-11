@@ -22,23 +22,20 @@ public class UserController {
     private final UserService userService;
     private final AuthService authService;
 
-    @GetMapping("/by-role")
+    @GetMapping("/all")
     @PreAuthorize("hasAnyAuthority('ADMIN')")
-    public ResponseEntity<Page<User>> findByRole(Pageable pageable, Role role){
-        return ResponseEntity.ok().body(userService.findByRole(
-                role,
+    public ResponseEntity<Page<User>> findAll(Pageable pageable){
+        return ResponseEntity.ok().body(userService.findAllByOrderByIdDesc(
                 pageable.getPageNumber(),
                 pageable.getPageSize()
         ));
     }
 
-
-
-
-    @GetMapping("/all-desc")
+    @GetMapping("/by-role/{role}")
     @PreAuthorize("hasAnyAuthority('ADMIN')")
-    public ResponseEntity<Page<User>> findAllByOrderDesc(Pageable pageable){
-        return ResponseEntity.ok().body(userService.findAllByOrderByIdDesc(
+    public ResponseEntity<Page<User>> findByRole(Pageable pageable, @PathVariable Role role){
+        return ResponseEntity.ok().body(userService.findByRole(
+                role,
                 pageable.getPageNumber(),
                 pageable.getPageSize()
         ));
