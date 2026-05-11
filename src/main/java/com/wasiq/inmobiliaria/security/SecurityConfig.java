@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authRequest -> {
                     // Acceso Público: Login y Registro
+                    authRequest.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     authRequest.requestMatchers("/auth/**").permitAll();
                     // Acceso Público: Ver propiedades (Solo GET)
                     authRequest.requestMatchers(HttpMethod.GET, "/properties/**","/properties").permitAll();
