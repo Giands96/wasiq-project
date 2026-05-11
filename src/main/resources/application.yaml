@@ -2,7 +2,7 @@ spring:
   application:
     name: inmobiliaria
   datasource:
-    url: jdbc:postgresql://localhost:5432/inmobiliaria_db
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
