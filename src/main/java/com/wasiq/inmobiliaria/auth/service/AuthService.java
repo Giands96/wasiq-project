@@ -37,9 +37,15 @@ public class AuthService {
     }
 
     public AuthResponse authenticate(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+            System.out.println("Autenticación exitosa");
+        } catch (Exception e) {
+            System.out.println("Error de autenticación: " + e.getClass().getName() + " - " + e.getMessage());
+            throw e;
+        }
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Bad credentials"));
