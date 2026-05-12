@@ -30,7 +30,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://wasiq-project-front.vercel.app"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "https://wasiq-project-front.vercel.app",
+                "https://wasiq-project-front-*.vercel.app"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST","PATCH", "PUT", "DELETE", "OPTIONS"));
 
         // ¡Aquí está la magia! Sin asteriscos.
