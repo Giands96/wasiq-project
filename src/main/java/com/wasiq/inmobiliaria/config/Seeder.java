@@ -41,6 +41,7 @@ public class Seeder implements CommandLineRunner {
                     .password(passwordEncoder.encode(randomPassword)) // Encriptamos la contraseña
                     .role(Role.ADMIN)
                     .phoneNumber("+51000000000")
+                    .active(true)
                     .build();
 
             // 4. Guardamos en la base de datos

@@ -39,6 +39,7 @@ public class User implements UserDetails {
     private Role role;
     @Column(name = "phone")
     private String phoneNumber;
+    @Builder.Default
     @Column(name = "active")
     private Boolean active = true;
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
