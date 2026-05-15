@@ -5,12 +5,17 @@ import com.wasiq.inmobiliaria.auth.dto.LoginRequest;
 import com.wasiq.inmobiliaria.auth.dto.RegisterRequest;
 import com.wasiq.inmobiliaria.auth.dto.UpdateUserRequest;
 import com.wasiq.inmobiliaria.auth.service.AuthService;
+import com.wasiq.inmobiliaria.controllers.dto.UserDTOResponse;
 import com.wasiq.inmobiliaria.jwt.JwtService;
 import com.wasiq.inmobiliaria.models.Role;
 import com.wasiq.inmobiliaria.models.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,16 +39,19 @@ public class AuthController {
         AuthResponse authResponse = authService.register(request);
         User user = authService.getUserByEmail(request.getEmail());
         String token = jwtService.generateToken(user);
-        Cookie cookie = new Cookie("auth-token", token );
-        cookie.setHttpOnly(true);
-        cookie.setAttribute("SameSite", "None");
-        cookie.setSecure(true);     //* Solo se enviará a través de HTTPS
-        cookie.setPath("/");        //* Disponible para toda la aplicación
-        cookie.setMaxAge(86400);    //* 1 día de duración
+        ResponseCookie springCookie = ResponseCookie.from("auth-token", token)
+                .httpOnly(true)
+                .secure(true) // Requerido para SameSite="None"
+                .sameSite("None") // Magia real cross-domain
+                .path("/")
+                .maxAge(86400) // 1 día
+                .build();
 
-        //* Agregar la cookie a la respuesta
-        response.addCookie(cookie);
-        return ResponseEntity.ok(authResponse);
+        // Inyectarla directamente dentro de los headers de la respuesta
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, springCookie.toString())
+                .body(authResponse);
+
     }
 
     @PostMapping("/login")
@@ -53,28 +61,30 @@ public class AuthController {
 
         User user = authService.getUserByEmail(request.getEmail());
         String token = jwtService.generateToken(user);
+        ResponseCookie springCookie = ResponseCookie.from("auth-token", token)
+                .httpOnly(true)
+                .secure(true) // Requerido para SameSite="None"
+                .sameSite("None") // Magia real cross-domain
+                .path("/")
+                .maxAge(86400) // 1 día
+                .build();
 
-        Cookie cookie = new Cookie("auth-token", token);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setAttribute("SameSite", "None");
-        cookie.setPath("/");
-        cookie.setMaxAge(86400);
-        response.addCookie(cookie);
-
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, springCookie.toString()).body(authResponse);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("auth-token", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setAttribute("SameSite", "None");
-        cookie.setMaxAge(0); // Eliminar la cookie
-        cookie.setPath("/");
-        response.addCookie(cookie);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> logout() {
+        ResponseCookie deleteCookie = ResponseCookie.from("auth-token", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(0) // 0 le dice al navegador que elimine la cookie inmediatamente
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .build();
     }
 
     @PostMapping("/profile/update/{id}")
