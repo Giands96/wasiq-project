@@ -32,7 +32,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
                 "https://wasiq-project-front.vercel.app",
-                "https://wasiq-project-front-*.vercel.app"
+                "https://wasiq-project-front-*.vercel.app",
+                "http://localhost:3000"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST","PATCH", "PUT", "DELETE", "OPTIONS"));
 
