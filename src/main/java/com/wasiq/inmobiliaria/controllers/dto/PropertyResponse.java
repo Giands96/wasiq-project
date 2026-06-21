@@ -1,8 +1,7 @@
 package com.wasiq.inmobiliaria.controllers.dto;
 
-import com.wasiq.inmobiliaria.models.Media;
-import com.wasiq.inmobiliaria.models.OperationType;
-import com.wasiq.inmobiliaria.models.PropertyType;
+import com.wasiq.inmobiliaria.models.enums.OperationType;
+import com.wasiq.inmobiliaria.models.enums.PropertyType;
 import lombok.Builder;
 import lombok.Data;
 

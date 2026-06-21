@@ -1,7 +1,7 @@
 package com.wasiq.inmobiliaria.auth.service;
 
 import com.wasiq.inmobiliaria.auth.dto.*;
-import com.wasiq.inmobiliaria.models.Role;
+import com.wasiq.inmobiliaria.models.enums.Role;
 import com.wasiq.inmobiliaria.models.User;
 import com.wasiq.inmobiliaria.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

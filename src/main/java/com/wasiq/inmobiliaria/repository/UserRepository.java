@@ -1,6 +1,6 @@
 package com.wasiq.inmobiliaria.repository;
 
-import com.wasiq.inmobiliaria.models.Role;
+import com.wasiq.inmobiliaria.models.enums.Role;
 import com.wasiq.inmobiliaria.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

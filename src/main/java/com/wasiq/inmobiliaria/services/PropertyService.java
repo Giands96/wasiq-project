@@ -3,6 +3,9 @@ package com.wasiq.inmobiliaria.services;
 import com.wasiq.inmobiliaria.cloudinary.CloudinaryService;
 import com.wasiq.inmobiliaria.controllers.exceptions.UnauthorizedException;
 import com.wasiq.inmobiliaria.models.*;
+import com.wasiq.inmobiliaria.models.enums.OperationType;
+import com.wasiq.inmobiliaria.models.enums.PropertyType;
+import com.wasiq.inmobiliaria.models.enums.Role;
 import com.wasiq.inmobiliaria.repository.PropertyRepository;
 import com.wasiq.inmobiliaria.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -16,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor

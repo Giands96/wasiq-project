@@ -1,6 +1,6 @@
 package com.wasiq.inmobiliaria.auth.dto;
 
-import com.wasiq.inmobiliaria.models.Role;
+import com.wasiq.inmobiliaria.models.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

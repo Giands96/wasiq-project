@@ -1,8 +1,8 @@
 package com.wasiq.inmobiliaria.repository;
 
-import com.wasiq.inmobiliaria.models.OperationType;
+import com.wasiq.inmobiliaria.models.enums.OperationType;
 import com.wasiq.inmobiliaria.models.Property;
-import com.wasiq.inmobiliaria.models.PropertyType;
+import com.wasiq.inmobiliaria.models.enums.PropertyType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

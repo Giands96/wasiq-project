@@ -1,6 +1,8 @@
 package com.wasiq.inmobiliaria.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.wasiq.inmobiliaria.models.enums.OperationType;
+import com.wasiq.inmobiliaria.models.enums.PropertyType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

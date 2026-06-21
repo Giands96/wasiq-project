@@ -5,16 +5,13 @@ import com.wasiq.inmobiliaria.auth.dto.LoginRequest;
 import com.wasiq.inmobiliaria.auth.dto.RegisterRequest;
 import com.wasiq.inmobiliaria.auth.dto.UpdateUserRequest;
 import com.wasiq.inmobiliaria.auth.service.AuthService;
-import com.wasiq.inmobiliaria.controllers.dto.UserDTOResponse;
 import com.wasiq.inmobiliaria.jwt.JwtService;
-import com.wasiq.inmobiliaria.models.Role;
+import com.wasiq.inmobiliaria.models.enums.Role;
 import com.wasiq.inmobiliaria.models.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,9 +26,10 @@ public class AuthController {
     private final AuthService authService;
     private final JwtService jwtService;
 
-    @PostMapping("/test")
-    public String testAuth() {
-        return "Auth Controller is working!";
+    @PostMapping("/refresh")
+    public TokenResponse refreshToken(@RequestHeader(HttpHeaders.AUTHORIZATION) final String authHeader) {
+        final TokenResponse token = authService.authenticate(request);
+        return ResponseEntity.ok(token);
     }
 
     @PostMapping("/register")
