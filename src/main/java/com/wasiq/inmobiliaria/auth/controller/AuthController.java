@@ -10,6 +10,7 @@ import com.wasiq.inmobiliaria.auth.service.AuthService;
 import com.wasiq.inmobiliaria.shared.jwt.JwtService;
 import com.wasiq.inmobiliaria.user.model.User;
 import com.wasiq.inmobiliaria.user.model.enums.Role;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -48,7 +49,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse authResponse = authService.register(request);
         User user = authService.getUserByEmail(request.getEmail());
 
@@ -58,7 +59,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse authResponse = authService.authenticate(request);
         User user = authService.getUserByEmail(request.getEmail());
 
@@ -80,7 +81,7 @@ public class AuthController {
 
     @PostMapping("/profile/update/{id}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    public ResponseEntity<AuthResponse> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest user,
+    public ResponseEntity<AuthResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest user,
                                                    @AuthenticationPrincipal User currentUser) {
         if (!id.equals(currentUser.getId()) && !currentUser.getRole().equals(Role.ADMIN)) {
             return ResponseEntity.status(403).build();
