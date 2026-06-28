@@ -1,6 +1,6 @@
 package com.wasiq.inmobiliaria.security;
 
-import com.wasiq.inmobiliaria.repository.UserRepository;
+import com.wasiq.inmobiliaria.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

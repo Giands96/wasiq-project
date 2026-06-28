@@ -1,11 +1,11 @@
 package com.wasiq.inmobiliaria.auth.service;
 
 import com.wasiq.inmobiliaria.auth.dto.*;
-import com.wasiq.inmobiliaria.controllers.exceptions.UnauthorizedException;
-import com.wasiq.inmobiliaria.jwt.JwtService;
-import com.wasiq.inmobiliaria.models.enums.Role;
-import com.wasiq.inmobiliaria.models.User;
-import com.wasiq.inmobiliaria.repository.UserRepository;
+import com.wasiq.inmobiliaria.shared.exceptions.UnauthorizedException;
+import com.wasiq.inmobiliaria.shared.jwt.JwtService;
+import com.wasiq.inmobiliaria.user.model.enums.Role;
+import com.wasiq.inmobiliaria.user.model.User;
+import com.wasiq.inmobiliaria.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

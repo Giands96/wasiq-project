@@ -1,6 +1,6 @@
 package com.wasiq.inmobiliaria.security;
 
-import com.wasiq.inmobiliaria.jwt.JwtAuthenticationFilter;
+import com.wasiq.inmobiliaria.shared.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

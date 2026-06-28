@@ -1,7 +1,7 @@
 package com.wasiq.inmobiliaria.auth.exceptions;
 
-import com.wasiq.inmobiliaria.controllers.dto.ApiErrorResponse;
-import com.wasiq.inmobiliaria.controllers.exceptions.UnauthorizedException;
+import com.wasiq.inmobiliaria.shared.dto.ApiErrorResponse;
+import com.wasiq.inmobiliaria.shared.exceptions.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

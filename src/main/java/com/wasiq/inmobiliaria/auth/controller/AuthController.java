@@ -7,12 +7,11 @@ import com.wasiq.inmobiliaria.auth.dto.LoginRequest;
 import com.wasiq.inmobiliaria.auth.dto.RegisterRequest;
 import com.wasiq.inmobiliaria.auth.dto.UpdateUserRequest;
 import com.wasiq.inmobiliaria.auth.service.AuthService;
-import com.wasiq.inmobiliaria.jwt.JwtService;
-import com.wasiq.inmobiliaria.models.User;
-import com.wasiq.inmobiliaria.models.enums.Role;
+import com.wasiq.inmobiliaria.shared.jwt.JwtService;
+import com.wasiq.inmobiliaria.user.model.User;
+import com.wasiq.inmobiliaria.user.model.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 
