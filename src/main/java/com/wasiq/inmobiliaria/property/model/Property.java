@@ -19,7 +19,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "properties")
+@Table(
+        name = "properties",
+        indexes = {
+                @Index(name = "idx_properties_owner_id", columnList = "owner_id"),
+                @Index(name = "idx_properties_active_id", columnList = "active, id"),
+                @Index(name = "idx_properties_filters", columnList = "active, property_type, operation_type, price")
+        }
+)
 @Builder
 public class Property {
 
@@ -49,9 +56,11 @@ public class Property {
     private Double area;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "operation_type")
     private OperationType operationType;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "property_type")
     private PropertyType propertyType;
 
     @Column(name = "active")
