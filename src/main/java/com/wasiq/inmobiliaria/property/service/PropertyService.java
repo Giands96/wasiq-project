@@ -10,6 +10,7 @@ import com.wasiq.inmobiliaria.property.enums.PropertyType;
 import com.wasiq.inmobiliaria.user.model.enums.Role;
 import com.wasiq.inmobiliaria.property.model.Property;
 import com.wasiq.inmobiliaria.property.repository.PropertyRepository;
+import com.wasiq.inmobiliaria.property.repository.PropertySpecifications;
 import com.wasiq.inmobiliaria.user.repository.UserRepository;
 import com.wasiq.inmobiliaria.user.model.User;
 import jakarta.transaction.Transactional;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -173,15 +175,51 @@ public class PropertyService {
             try {
                 operationType = OperationType.valueOf(operationTypeStr.toUpperCase());
             } catch (IllegalArgumentException e) {
-                // Ignoramos errores de tipeo
+                throw new RuntimeException("Invalid operation type: " + operationTypeStr);
             }
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Specification<Property> filters = buildPropertyFilters(
+                query, propertyType, operationType, minPrice, maxPrice, rooms, bathrooms
+        );
 
-        return propertyRepository.findWithDynamicFilters(
-                query, propertyType, operationType,
-                minPrice, maxPrice, rooms, bathrooms, pageable);
+        return propertyRepository.findAll(filters, pageable);
+    }
+
+    private Specification<Property> buildPropertyFilters(
+            String query,
+            PropertyType propertyType,
+            OperationType operationType,
+            Double minPrice,
+            Double maxPrice,
+            Integer rooms,
+            Integer bathrooms) {
+        Specification<Property> filters = PropertySpecifications.active();
+
+        if (query != null && !query.trim().isEmpty()) {
+            filters = filters.and(PropertySpecifications.titleContains(query.trim()));
+        }
+        if (propertyType != null) {
+            filters = filters.and(PropertySpecifications.propertyTypeEquals(propertyType));
+        }
+        if (operationType != null) {
+            filters = filters.and(PropertySpecifications.operationTypeEquals(operationType));
+        }
+        if (minPrice != null) {
+            filters = filters.and(PropertySpecifications.priceGreaterThanOrEqual(minPrice));
+        }
+        if (maxPrice != null) {
+            filters = filters.and(PropertySpecifications.priceLessThanOrEqual(maxPrice));
+        }
+        if (rooms != null) {
+            filters = filters.and(PropertySpecifications.bedroomsGreaterThanOrEqual(rooms));
+        }
+        if (bathrooms != null) {
+            filters = filters.and(PropertySpecifications.bathroomsGreaterThanOrEqual(bathrooms));
+        }
+
+        return filters;
     }
 
     public PropertyPageFilter resolvePageFilter(String filter) {
