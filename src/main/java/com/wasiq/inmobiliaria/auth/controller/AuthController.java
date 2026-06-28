@@ -1,114 +1,138 @@
 package com.wasiq.inmobiliaria.auth.controller;
 
+
+
 import com.wasiq.inmobiliaria.auth.dto.AuthResponse;
 import com.wasiq.inmobiliaria.auth.dto.LoginRequest;
 import com.wasiq.inmobiliaria.auth.dto.RegisterRequest;
 import com.wasiq.inmobiliaria.auth.dto.UpdateUserRequest;
 import com.wasiq.inmobiliaria.auth.service.AuthService;
 import com.wasiq.inmobiliaria.jwt.JwtService;
-import com.wasiq.inmobiliaria.models.enums.Role;
 import com.wasiq.inmobiliaria.models.User;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
+import com.wasiq.inmobiliaria.models.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
+    private static final String ACCESS_TOKEN_COOKIE = "auth-token";
+    private static final String REFRESH_TOKEN_COOKIE = "refresh-token";
+    private static final Duration ACCESS_TOKEN_MAX_AGE = Duration.ofMinutes(15);
+    private static final Duration REFRESH_TOKEN_MAX_AGE = Duration.ofDays(30);
+
     private final AuthService authService;
     private final JwtService jwtService;
 
     @PostMapping("/refresh")
-    public TokenResponse refreshToken(@RequestHeader(HttpHeaders.AUTHORIZATION) final String authHeader) {
-        final TokenResponse token = authService.authenticate(request);
-        return ResponseEntity.ok(token);
+    public ResponseEntity<AuthResponse> refreshToken(
+            @CookieValue(name = REFRESH_TOKEN_COOKIE, required = false) String refreshToken) {
+        AuthResponse response = authService.refreshToken(refreshToken);
+        User user = authService.getUserByEmail(response.getUser().getEmail());
+        return ResponseEntity.ok().headers(buildAuthCookies(user)).body(response);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request, HttpServletResponse response) {
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         AuthResponse authResponse = authService.register(request);
         User user = authService.getUserByEmail(request.getEmail());
-        String token = jwtService.generateToken(user);
-        ResponseCookie springCookie = ResponseCookie.from("auth-token", token)
-                .httpOnly(true)
-                .secure(true) // Requerido para SameSite="None"
-                .sameSite("None") // Magia real cross-domain
-                .path("/")
-                .maxAge(86400) // 1 día
-                .build();
 
-        // Inyectarla directamente dentro de los headers de la respuesta
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, springCookie.toString())
+                .headers(buildAuthCookies(user))
                 .body(authResponse);
-
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody  LoginRequest request, HttpServletResponse response) throws Exception {
-
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         AuthResponse authResponse = authService.authenticate(request);
-
         User user = authService.getUserByEmail(request.getEmail());
-        String token = jwtService.generateToken(user);
-        ResponseCookie springCookie = ResponseCookie.from("auth-token", token)
-                .httpOnly(true)
-                .secure(true) // Requerido para SameSite="None"
-                .sameSite("None") // Magia real cross-domain
-                .path("/")
-                .maxAge(86400) // 1 día
-                .build();
 
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, springCookie.toString()).body(authResponse);
+        return ResponseEntity.ok()
+                .headers(buildAuthCookies(user))
+                .body(authResponse);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
-        ResponseCookie deleteCookie = ResponseCookie.from("auth-token", "")
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .maxAge(0) // 0 le dice al navegador que elimine la cookie inmediatamente
-                .build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, deleteCookie(ACCESS_TOKEN_COOKIE).toString());
+        headers.add(HttpHeaders.SET_COOKIE, deleteCookie(REFRESH_TOKEN_COOKIE).toString());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .headers(headers)
                 .build();
     }
 
     @PostMapping("/profile/update/{id}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<AuthResponse> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest user,
-                                                   @AuthenticationPrincipal User currentUser, HttpServletResponse response) {
+                                                   @AuthenticationPrincipal User currentUser) {
         if (!id.equals(currentUser.getId()) && !currentUser.getRole().equals(Role.ADMIN)) {
             return ResponseEntity.status(403).build();
         }
 
-        //* Actualizar primero
         AuthResponse authResponse = authService.updateUser(id, user);
-
-        //* Obtener usuario actualizado
         User updatedUser = authService.getUserByEmail(currentUser.getUsername());
 
-        //* Generar token y cookie
-        String token = jwtService.generateToken(updatedUser);
-        Cookie cookie = new Cookie("auth-token", token);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setAttribute("SameSite", "None");
-        cookie.setPath("/");
-        cookie.setMaxAge(86400);
-        response.addCookie(cookie);
+        return ResponseEntity.ok()
+                .headers(buildAuthCookies(updatedUser))
+                .body(authResponse);
+    }
 
-        return ResponseEntity.ok(authResponse);
+    //*
+
+    private HttpHeaders buildAuthCookies(UserDetails user) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, accessTokenCookie(jwtService.generateToken(user)).toString());
+        headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie(jwtService.generateRefreshToken(user)).toString());
+        return headers;
+    }
+
+
+    private ResponseCookie accessTokenCookie(String token) {
+        return ResponseCookie.from(ACCESS_TOKEN_COOKIE, token)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(ACCESS_TOKEN_MAX_AGE)
+                .build();
+    }
+
+    private ResponseCookie refreshTokenCookie(String token) {
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE, token)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/auth/refresh")
+                .maxAge(REFRESH_TOKEN_MAX_AGE)
+                .build();
+    }
+
+    private ResponseCookie deleteCookie(String name) {
+        return ResponseCookie.from(name, "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path(REFRESH_TOKEN_COOKIE.equals(name) ? "/auth/refresh" : "/")
+                .maxAge(0)
+                .build();
     }
 }
