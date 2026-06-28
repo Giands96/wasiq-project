@@ -1,6 +1,8 @@
 package com.wasiq.inmobiliaria.services;
 
 import com.wasiq.inmobiliaria.cloudinary.CloudinaryService;
+import com.wasiq.inmobiliaria.controllers.dto.CreatePropertyRequest;
+import com.wasiq.inmobiliaria.controllers.dto.UpdatePropertyRequest;
 import com.wasiq.inmobiliaria.controllers.exceptions.UnauthorizedException;
 import com.wasiq.inmobiliaria.models.*;
 import com.wasiq.inmobiliaria.models.enums.OperationType;
@@ -50,19 +52,14 @@ public class PropertyService {
     }
 
 
-    public Property saveProperty(Property property, String email) {
-        userRepository.findByEmail(email).ifPresent(property::setOwner);
-        return propertyRepository.save(property);
-    }
     @Transactional
-    public Property savePropertyWithImage(Property property, List<MultipartFile> files, String email) {
+    public Property savePropertyWithImage(CreatePropertyRequest request, List<MultipartFile> files, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        Property property = buildProperty(request);
         property.setOwner(user);
-        // Guardar la propiedad para tener el ID
         Property savedProperty = propertyRepository.save(property);
 
-        // Si hay archivos, los iteramos y subimos uno por uno
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
                 uploadImage(savedProperty.getId(), file);
@@ -72,7 +69,7 @@ public class PropertyService {
     }
 
     @Transactional
-    public Property updateProperty(String slug, Property updatedProperty, List<MultipartFile> files,
+    public Property updateProperty(String slug, UpdatePropertyRequest request, List<MultipartFile> files,
                                    List<Long> keptImageIds,
                                    String email) {
 
@@ -83,16 +80,7 @@ public class PropertyService {
             throw new UnauthorizedException("You are not the owner of this property");
         }
 
-        existingProperty.setTitle(updatedProperty.getTitle());
-        existingProperty.setDescription(updatedProperty.getDescription());
-        existingProperty.setPrice(updatedProperty.getPrice());
-        existingProperty.setAddress(updatedProperty.getAddress());
-        existingProperty.setBedrooms(updatedProperty.getBedrooms());
-        existingProperty.setBathrooms(updatedProperty.getBathrooms());
-        existingProperty.setArea(updatedProperty.getArea());
-        existingProperty.setOperationType(updatedProperty.getOperationType());
-        existingProperty.setPropertyType(updatedProperty.getPropertyType());
-        existingProperty.setAvailable(updatedProperty.getAvailable());
+        applyUpdate(request, existingProperty);
 
         List<Long> idsKept = keptImageIds == null ? new ArrayList<>() : keptImageIds;
         existingProperty.getImages().removeIf(image -> !idsKept.contains(image.getId()));
@@ -106,6 +94,34 @@ public class PropertyService {
         }
 
         return propertyRepository.save(existingProperty);
+    }
+
+    private Property buildProperty(CreatePropertyRequest request) {
+        return Property.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .price(request.getPrice())
+                .address(request.getAddress())
+                .bedrooms(request.getBedrooms())
+                .bathrooms(request.getBathrooms())
+                .area(request.getArea())
+                .operationType(request.getOperationType())
+                .propertyType(request.getPropertyType())
+                .available(request.getAvailable() != null ? request.getAvailable() : true)
+                .build();
+    }
+
+    private void applyUpdate(UpdatePropertyRequest request, Property property) {
+        property.setTitle(request.getTitle());
+        property.setDescription(request.getDescription());
+        property.setPrice(request.getPrice());
+        property.setAddress(request.getAddress());
+        property.setBedrooms(request.getBedrooms());
+        property.setBathrooms(request.getBathrooms());
+        property.setArea(request.getArea());
+        property.setOperationType(request.getOperationType());
+        property.setPropertyType(request.getPropertyType());
+        property.setAvailable(request.getAvailable());
     }
 
     public Property findBySlugAndActiveTrue(String slug) {
@@ -164,6 +180,66 @@ public class PropertyService {
         return propertyRepository.findWithDynamicFilters(
                 query, propertyType, operationType,
                 minPrice, maxPrice, rooms, bathrooms, pageable);
+    }
+
+    public PropertyPageFilter resolvePageFilter(String filter) {
+        if (filter == null || filter.trim().isEmpty()) {
+            return new PropertyPageFilter(
+                    "Propiedades",
+                    "Encuentra casas, departamentos y terrenos disponibles.",
+                    null,
+                    null,
+                    null
+            );
+        }
+
+        return switch (filter.trim().toLowerCase()) {
+            case "venta" -> new PropertyPageFilter(
+                    "Propiedades en venta",
+                    "Explora propiedades disponibles para comprar.",
+                    "venta",
+                    null,
+                    OperationType.SALE.name()
+            );
+            case "alquiler" -> new PropertyPageFilter(
+                    "Propiedades en alquiler",
+                    "Explora propiedades disponibles para alquilar.",
+                    "alquiler",
+                    null,
+                    OperationType.RENT.name()
+            );
+            case "departamento", "departamentos" -> new PropertyPageFilter(
+                    "Departamentos",
+                    "Encuentra departamentos disponibles.",
+                    "departamento",
+                    PropertyType.APARTMENT.name(),
+                    null
+            );
+            case "terreno", "terrenos" -> new PropertyPageFilter(
+                    "Terrenos",
+                    "Encuentra terrenos disponibles.",
+                    "terreno",
+                    PropertyType.LAND.name(),
+                    null
+            );
+            case "casa", "casas" -> new PropertyPageFilter(
+                    "Casas",
+                    "Encuentra casas disponibles.",
+                    "casa",
+                    PropertyType.HOUSE.name(),
+                    null
+            );
+            default -> throw new RuntimeException("Invalid property page filter: " + filter);
+        };
+    }
+
+    public record PropertyPageFilter(
+            String title,
+            String description,
+            String filter,
+            String propertyType,
+            String operationType
+    ) {
     }
 
 }

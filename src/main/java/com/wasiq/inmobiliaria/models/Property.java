@@ -75,8 +75,12 @@ public class Property {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        this.available = true;
-        this.active = true;
+        if (this.available == null) {
+            this.available = true;
+        }
+        if (this.active == null) {
+            this.active = true;
+        }
         if(this.title != null) {
             String baseSlug = this.title.toLowerCase().replaceAll("[^a-z0-9\\s-]","").replaceAll("\\s+", "-").replaceAll("-+", "-");
             //* Agregar un sufijo único para garantizar la unicidad del slug *//

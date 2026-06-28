@@ -1,6 +1,9 @@
 package com.wasiq.inmobiliaria.controllers;
 
+import com.wasiq.inmobiliaria.controllers.dto.CreatePropertyRequest;
+import com.wasiq.inmobiliaria.controllers.dto.PropertyPageResponse;
 import com.wasiq.inmobiliaria.controllers.dto.PropertyResponse;
+import com.wasiq.inmobiliaria.controllers.dto.UpdatePropertyRequest;
 import com.wasiq.inmobiliaria.controllers.utils.PropertyMapper;
 import com.wasiq.inmobiliaria.models.Property;
 import com.wasiq.inmobiliaria.services.PropertyService;
@@ -45,6 +48,35 @@ public class PropertyController {
         return ResponseEntity.ok(propertiesPage.map(propertyMapper::toResponse));
     }
 
+    @GetMapping("/page")
+    public ResponseEntity<PropertyPageResponse> getPropertyPage(
+            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        PropertyService.PropertyPageFilter pageFilter = propertyService.resolvePageFilter(filter);
+        Page<PropertyResponse> properties = propertyService.getFilteredProperties(
+                null,
+                pageFilter.propertyType(),
+                pageFilter.operationType(),
+                null,
+                null,
+                null,
+                null,
+                page,
+                size
+        ).map(propertyMapper::toResponse);
+
+        return ResponseEntity.ok(PropertyPageResponse.builder()
+                .title(pageFilter.title())
+                .description(pageFilter.description())
+                .filter(pageFilter.filter())
+                .propertyType(pageFilter.propertyType())
+                .operationType(pageFilter.operationType())
+                .properties(properties)
+                .build());
+    }
+
 
     @GetMapping("/slug/{slug}")
     public ResponseEntity<PropertyResponse> getPropertyBySlug(@PathVariable String slug ) {
@@ -56,7 +88,7 @@ public class PropertyController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<PropertyResponse> createProperty(
-            @RequestPart("property") @Valid Property property,
+            @RequestPart("property") @Valid CreatePropertyRequest property,
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
             Authentication authentication) {
 
@@ -74,7 +106,7 @@ public class PropertyController {
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<PropertyResponse> updateProperty(
             @PathVariable String slug,
-            @RequestPart(value = "property") @Valid Property property,
+            @RequestPart(value = "property") @Valid UpdatePropertyRequest property,
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @RequestParam(value = "keptImageIds", required = false) List<Long> keptImageIds,
             Authentication authentication) {
@@ -91,4 +123,7 @@ public class PropertyController {
         propertyService.softDeleteProperty(slug, email);
         return ResponseEntity.noContent().build();
     }
+
+
+
 }
