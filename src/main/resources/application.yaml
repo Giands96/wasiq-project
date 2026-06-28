@@ -8,13 +8,14 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
 
 jwt:
   secret: bWlTdXBlclNlY3JldEtleTEyMzQ1Njc4OTAxMjM0NTY=
   expiration: ${JWT_EXPIRATION_TIME:86400000}
-  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION_TIME:2592000000}
+  refresh-token:
+    expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
 
 cloudinary:
   cloud_name: ${CLOUD_NAME}
