@@ -1,6 +1,6 @@
 package com.wasiq.inmobiliaria.security;
 
-import com.wasiq.inmobiliaria.jwt.JwtAuthenticationFilter;
+import com.wasiq.inmobiliaria.shared.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
                 "https://wasiq-project-front.vercel.app",
-                "https://wasiq-project-front-*.vercel.app"
+                "https://wasiq-project-front-*.vercel.app",
+                "http://localhost:3000"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST","PATCH", "PUT", "DELETE", "OPTIONS"));
 
