@@ -6,7 +6,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +53,7 @@ public class JwtService {
         String username = userDetails.getUsername();
         return Jwts.builder()
                 .subject(username)
+                .claim("role", getPrimaryRole(userDetails))
                 .signWith(getSigningKey())
                 .issuedAt(new Date(currentTimeMillis()))
                 .expiration(new Date(currentTimeMillis()+jwtExpiration))
@@ -68,6 +68,14 @@ public class JwtService {
                 .issuedAt(new Date(currentTimeMillis()))
                 .expiration(new Date(currentTimeMillis() + refreshExpiration))
                 .compact();
+    }
+
+    private String getPrimaryRole(UserDetails userDetails) {
+        return userDetails.getAuthorities()
+                .stream()
+                .map(Object::toString)
+                .findFirst()
+                .orElse(null);
     }
 
     public String extractUsername(String token) {
