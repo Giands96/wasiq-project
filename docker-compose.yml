@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: inmobiliaria-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-inmobiliaria}
+      POSTGRES_USER: ${POSTGRES_USER:-inmobiliaria}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-inmobiliaria}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-inmobiliaria} -d ${POSTGRES_DB:-inmobiliaria}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  wasiq-api:
+    build: .
+    container_name: wasiq-backend-container
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-inmobiliaria}
+      DB_USERNAME: ${POSTGRES_USER:-inmobiliaria}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-inmobiliaria}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME:-86400000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION_TIME:-2592000000}
+      JWT_REFRESH_EXPIRATION_TIME: ${JWT_REFRESH_EXPIRATION_TIME:-2592000000}
+      CLOUD_NAME: ${CLOUD_NAME}
+      CLOUD_API_KEY: ${CLOUD_API_KEY}
+      CLOUD_API_SECRET: ${CLOUD_API_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@wasiq.com.pe}
+
+volumes:
+  postgres_data:
