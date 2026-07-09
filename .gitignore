@@ -36,3 +36,4 @@ build/
 ## ENVIRONEMNT VARIABLES ##
 
 .env
+.env.prod.example
