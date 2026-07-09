@@ -63,6 +63,7 @@ public class Property {
     @Column(nullable = false, name = "property_type")
     private PropertyType propertyType;
 
+    @Builder.Default
     @Column(name = "active")
     private Boolean active = true;
 
