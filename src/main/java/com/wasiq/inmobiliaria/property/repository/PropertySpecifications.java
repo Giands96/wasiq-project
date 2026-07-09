@@ -18,6 +18,10 @@ public final class PropertySpecifications {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("available"));
     }
 
+    public static Specification<Property> availableEquals(Boolean value) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("available"), value);
+    }
+
     public static Specification<Property> titleContains(String value) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("title")),
