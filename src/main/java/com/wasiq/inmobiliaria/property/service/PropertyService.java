@@ -195,7 +195,8 @@ public class PropertyService {
             Double maxPrice,
             Integer rooms,
             Integer bathrooms) {
-        Specification<Property> filters = PropertySpecifications.active();
+        Specification<Property> filters = PropertySpecifications.active()
+                .and(PropertySpecifications.available());
 
         if (query != null && !query.trim().isEmpty()) {
             filters = filters.and(PropertySpecifications.titleContains(query.trim()));
