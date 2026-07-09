@@ -80,14 +80,19 @@ public class PropertyService {
         Property existingProperty = propertyRepository.findBySlugAndActiveTrue(slug)
                 .orElseThrow(() -> new RuntimeException("Property not found"));
 
-        if(existingProperty.getOwner() != null && !existingProperty.getOwner().getEmail().equals(email)) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getRole() != Role.ADMIN && (existingProperty.getOwner() == null || !existingProperty.getOwner().getEmail().equals(email))) {
             throw new UnauthorizedException("You are not the owner of this property");
         }
 
         applyUpdate(request, existingProperty);
 
         List<Long> idsKept = keptImageIds == null ? new ArrayList<>() : keptImageIds;
-        existingProperty.getImages().removeIf(image -> !idsKept.contains(image.getId()));
+        if (existingProperty.getImages() != null) {
+            existingProperty.getImages().removeIf(image -> !idsKept.contains(image.getId()));
+        }
 
         Property savedProperty = propertyRepository.save(existingProperty);
 
@@ -112,6 +117,7 @@ public class PropertyService {
                 .operationType(request.getOperationType())
                 .propertyType(request.getPropertyType())
                 .available(request.getAvailable() != null ? request.getAvailable() : true)
+                .active(true)
                 .build();
     }
 
@@ -128,10 +134,9 @@ public class PropertyService {
         property.setAvailable(request.getAvailable());
     }
 
-    public Property findBySlugAndActiveTrue(String slug) {
-        return propertyRepository.findBySlugAndActiveTrue(slug)
+    public Property findPublicPropertyBySlug(String slug) {
+        return propertyRepository.findBySlugAndActiveTrueAndAvailableTrue(slug)
                 .orElseThrow(() -> new RuntimeException("Property not found"));
-
     }
 
 
@@ -281,6 +286,64 @@ public class PropertyService {
             String propertyType,
             String operationType
     ) {
+    }
+
+    //* ADMIN
+
+    public Property findAdminPropertyBySlug(String slug) {
+        return propertyRepository.findBySlugAndActiveTrue(slug)
+                .orElseThrow(() -> new RuntimeException("Property not found"));
+    }
+
+    public Page<Property> getAdminProperties(
+            String query, String propertyTypeStr, String operationTypeStr,
+            Boolean available, int page, int size) {
+
+        PropertyType propertyType = null;
+        if (propertyTypeStr != null) {
+            try {
+                propertyType = PropertyType.valueOf(propertyTypeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid property type: " + propertyTypeStr);
+            }
+        }
+
+        OperationType operationType = null;
+        if (operationTypeStr != null && !operationTypeStr.trim().isEmpty()) {
+            try {
+                operationType = OperationType.valueOf(operationTypeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid operation type: " + operationTypeStr);
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Specification<Property> filters = buildAdminPropertyFilters(query, propertyType, operationType, available);
+
+        return propertyRepository.findAll(filters, pageable);
+    }
+
+    private Specification<Property> buildAdminPropertyFilters(
+            String query,
+            PropertyType propertyType,
+            OperationType operationType,
+            Boolean available) {
+        Specification<Property> filters = PropertySpecifications.active();
+
+        if (query != null && !query.trim().isEmpty()) {
+            filters = filters.and(PropertySpecifications.titleContains(query.trim()));
+        }
+        if (propertyType != null) {
+            filters = filters.and(PropertySpecifications.propertyTypeEquals(propertyType));
+        }
+        if (operationType != null) {
+            filters = filters.and(PropertySpecifications.operationTypeEquals(operationType));
+        }
+        if (available != null) {
+            filters = filters.and(PropertySpecifications.availableEquals(available));
+        }
+
+        return filters;
     }
 
 }
