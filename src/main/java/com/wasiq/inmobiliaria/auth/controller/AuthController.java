@@ -30,7 +30,7 @@ import java.time.Duration;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class    AuthController {
 
     private static final String ACCESS_TOKEN_COOKIE = "auth-token";
     private static final String REFRESH_TOKEN_COOKIE = "refresh-token";

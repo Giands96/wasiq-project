@@ -12,7 +12,7 @@ spring:
     show-sql: false
 
 jwt:
-  secret: bWlTdXBlclNlY3JldEtleTEyMzQ1Njc4OTAxMjM0NTY=
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION_TIME:86400000}
   refresh-token:
     expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
