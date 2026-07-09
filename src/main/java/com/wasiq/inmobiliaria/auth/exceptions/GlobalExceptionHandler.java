@@ -68,7 +68,10 @@ public class GlobalExceptionHandler {
             Exception exception, //
             HttpServletRequest request) {
         log.error("Unhandled exception on {} {}", request.getMethod(), request.getRequestURI(), exception);
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor", request, null);
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor", request, Map.of(
+                "exception", exception.getClass().getName(),
+                "detail", exception.getMessage() != null ? exception.getMessage() : "null"
+        ));
     }
 
     private ResponseEntity<ApiErrorResponse> buildError(
