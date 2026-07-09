@@ -26,6 +26,7 @@ public class PropertyMapper {
                 .operationType(property.getOperationType())
                 .propertyType(property.getPropertyType())
                 .available(property.getAvailable())
+                .active(property.getActive())
                 .slug(property.getSlug())
                 .createdAt(property.getCreatedAt())
                 .updatedAt(property.getUpdatedAt())

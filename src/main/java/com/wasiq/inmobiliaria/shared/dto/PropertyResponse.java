@@ -22,6 +22,7 @@ public class PropertyResponse {
     private OperationType operationType;
     private PropertyType propertyType;
     private Boolean available;
+    private Boolean active;
     private String slug;
     private List<String> images;
     private LocalDateTime createdAt;

@@ -80,7 +80,7 @@ public class PropertyController {
 
     @GetMapping("/slug/{slug}")
     public ResponseEntity<PropertyResponse> getPropertyBySlug(@PathVariable String slug ) {
-        Property property = propertyService.findBySlugAndActiveTrue(slug);
+        Property property = propertyService.findPublicPropertyBySlug(slug);
         return ResponseEntity.ok(propertyMapper.toResponse(property));
     }
 
@@ -124,6 +124,27 @@ public class PropertyController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/admin")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Page<PropertyResponse>> getAdminProperties(
+            @RequestParam(value = "query", required = false) String query,
+            @RequestParam(value = "propertyType", required = false) String propertyType,
+            @RequestParam(value = "operationType", required = false) String operationType,
+            @RequestParam(value = "available", required = false) Boolean available,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
 
+        Page<Property> propertiesPage = propertyService.getAdminProperties(
+                query, propertyType, operationType, available, page, size);
+
+        return ResponseEntity.ok(propertiesPage.map(propertyMapper::toResponse));
+    }
+
+    @GetMapping("/admin/{slug}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<PropertyResponse> getAdminPropertyBySlug(@PathVariable String slug) {
+        Property property = propertyService.findAdminPropertyBySlug(slug);
+        return ResponseEntity.ok(propertyMapper.toResponse(property));
+    }
 
 }

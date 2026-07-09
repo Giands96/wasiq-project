@@ -20,4 +20,5 @@ public interface PropertyRepository extends JpaRepository<Property, Long>, JpaSp
     List<Property> findByPropertyType(PropertyType propertyType);
     Page<Property> findByTitleContainingAndActiveTrue(String title, Pageable pageable);
     Optional<Property> findBySlugAndActiveTrue(String slug);
+    Optional<Property> findBySlugAndActiveTrueAndAvailableTrue(String slug);
 }
