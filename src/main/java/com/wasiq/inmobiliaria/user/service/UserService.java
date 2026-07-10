@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -30,17 +31,38 @@ public class UserService {
     public User updateUser(Long id, User user) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        //* Si el usuario solo quiere actualizar su telefono, se actualiza solo el telefono, etc... */
         if(user.getPassword() != null) existingUser.setPassword(user.getPassword());
-        //*
         if(user.getPhoneNumber() != null) existingUser.setPhoneNumber(user.getPhoneNumber());
-
 
         return userRepository.save(existingUser);
     }
 
     public Page<User> findAllByOrderByIdDesc(int page, int size) {
         return userRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
+    }
+
+    @Transactional
+    public User updateRole(Long id, Role role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setRole(role);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateStatus(Long id, Boolean active) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setActive(active);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setActive(false);
+        userRepository.save(user);
     }
 
 }
