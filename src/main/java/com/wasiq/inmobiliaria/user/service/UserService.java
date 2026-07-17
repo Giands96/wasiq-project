@@ -28,6 +28,11 @@ public class UserService {
         );
     }
 
+    public User getById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     public User updateUser(Long id, User user) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));

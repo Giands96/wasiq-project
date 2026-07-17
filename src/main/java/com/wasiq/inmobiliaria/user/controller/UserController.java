@@ -32,6 +32,11 @@ public class UserController {
         ));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<User> findById(@PathVariable Long id){
+        return ResponseEntity.ok().body(userService.getById(id));
+    }
+
     @GetMapping("/by-role/{role}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Page<User>> findByRole(Pageable pageable, @PathVariable Role role){
