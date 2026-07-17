@@ -83,6 +83,7 @@ public class AuthService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .id(user.getId())
+                .active(user.getActive())
                 .build();
     }
 
