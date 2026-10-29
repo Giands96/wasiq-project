@@ -106,6 +106,41 @@ class JwtServiceTest {
     }
 
     @Test
+    void tokensIssuedBeforePasswordChangeAreRejected() {
+        User user = user(true);
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        user.setPassword("new-hash");
+
+        assertFalse(jwtService.isAccessTokenValid(accessToken, user));
+        assertFalse(jwtService.isRefreshTokenValid(refreshToken, user));
+        assertTrue(jwtService.isAccessTokenValid(jwtService.generateToken(user), user));
+    }
+
+    @Test
+    void tokenWithoutPasswordFingerprintIsRejected() {
+        User user = user(true);
+        String tokenFromPreviousRelease = Jwts.builder()
+                .subject(user.getUsername())
+                .claim("typ", "access")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION))
+                .signWith(jwtService.getSigningKey())
+                .compact();
+
+        assertFalse(jwtService.isAccessTokenValid(tokenFromPreviousRelease, user));
+    }
+
+    @Test
+    void tokenDoesNotContainPasswordHash() {
+        User user = user(true);
+        String token = jwtService.generateToken(user);
+        String payload = new String(Base64.getUrlDecoder().decode(token.split("\\.")[1]), StandardCharsets.UTF_8);
+
+        assertFalse(payload.contains(user.getPassword()), payload);
+    }
+
+    @Test
     void accessTokenLifetimeMatchesConfiguredExpiration() {
         String token = jwtService.generateToken(user(true));
 

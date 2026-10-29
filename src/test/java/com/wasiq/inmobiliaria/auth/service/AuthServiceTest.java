@@ -162,6 +162,14 @@ class AuthServiceTest {
     }
 
     @Test
+    void refreshRejectsTokenIssuedBeforePasswordChange() {
+        String refreshToken = jwtService.generateRefreshToken(user);
+        authService.updateUser(1L, passwordChange("current-password"), user);
+
+        assertThrows(UnauthorizedException.class, () -> authService.refreshToken(refreshToken));
+    }
+
+    @Test
     void refreshRejectsAccessToken() {
         String accessToken = jwtService.generateToken(user);
 
