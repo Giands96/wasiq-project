@@ -89,7 +89,7 @@ public class    AuthController {
             return ResponseEntity.status(403).build();
         }
 
-        AuthResponse authResponse = authService.updateUser(id, user);
+        AuthResponse authResponse = authService.updateUser(id, user, currentUser);
         User updatedUser = authService.getUserByEmail(currentUser.getUsername());
 
         return ResponseEntity.ok()

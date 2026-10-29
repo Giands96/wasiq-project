@@ -10,11 +10,13 @@ import com.wasiq.inmobiliaria.user.model.User;
 import com.wasiq.inmobiliaria.user.repository.UserRepository;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.util.Locale;
@@ -26,6 +28,7 @@ public class AuthService {
     private static final int MAX_LOGIN_ATTEMPTS_PER_CLIENT = 5;
     private static final int MAX_LOGIN_ATTEMPTS_PER_ACCOUNT = 20;
     private static final Duration LOGIN_ATTEMPTS_WINDOW = Duration.ofMinutes(15);
+    private static final int MAX_PASSWORD_CHANGE_ATTEMPTS = 5;
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
@@ -78,21 +81,39 @@ public class AuthService {
                 .build();
     }
 
-    public AuthResponse updateUser(Long userId, UpdateUserRequest request) {
+    public AuthResponse updateUser(Long userId, UpdateUserRequest request, User actingUser) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
+
+        boolean changesPassword = request.getPassword() != null && !request.getPassword().isEmpty();
+        if (changesPassword) {
+            verifyCurrentPassword(actingUser, request.getCurrentPassword());
+        }
 
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
             user.setPhoneNumber(request.getPhoneNumber());
         }
 
-        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+        if (changesPassword) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         userRepository.save(user);
         return AuthResponse.builder()
                 .user(mapToUserResponse(user))
                 .build();
+    }
+
+    //* A stolen session alone must not be enough to take over the account */
+    private void verifyCurrentPassword(User actingUser, String currentPassword) {
+        String attemptsKey = "password-change:" + actingUser.getId();
+        if (!rateLimiter.tryConsume(attemptsKey, MAX_PASSWORD_CHANGE_ATTEMPTS, LOGIN_ATTEMPTS_WINDOW)) {
+            throw new TooManyRequestsException("Demasiados intentos fallidos, intenta nuevamente mas tarde");
+        }
+        if (currentPassword == null || currentPassword.isEmpty()
+                || !passwordEncoder.matches(currentPassword, actingUser.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La contrasena actual es incorrecta");
+        }
+        rateLimiter.reset(attemptsKey);
     }
 
     public AuthResponse buildAuthResponse(User user) {
