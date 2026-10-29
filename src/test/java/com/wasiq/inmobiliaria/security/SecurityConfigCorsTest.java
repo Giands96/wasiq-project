@@ -1,6 +1,5 @@
 package com.wasiq.inmobiliaria.security;
 
-import com.wasiq.inmobiliaria.security.ratelimit.RateLimiter;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -13,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SecurityConfigCorsTest {
 
     private CorsConfiguration corsFor(String... allowedOrigins) {
-        SecurityConfig config = new SecurityConfig(null, null, new RateLimiter());
+        SecurityConfig config = new SecurityConfig(null, null);
         ReflectionTestUtils.setField(config, "allowedOrigins", allowedOrigins);
         return config.corsConfigurationSource().getCorsConfiguration(new MockHttpServletRequest("GET", "/properties/"));
     }
