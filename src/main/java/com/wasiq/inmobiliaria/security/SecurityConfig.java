@@ -36,10 +36,6 @@ public class SecurityConfig {
     @Value("${cors.allowed-origins}")
     private String[] allowedOrigins;
 
-    //* Exact origins only: wildcard subdomains on shared hosts (vercel.app) can be claimed by anyone
-    @Value("${cors.allowed-origins}")
-    private String[] allowedOrigins;
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

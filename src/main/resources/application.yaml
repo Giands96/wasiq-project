@@ -11,6 +11,10 @@ spring:
       ddl-auto: validate
     show-sql: false
 
+server:
+  # Trusts X-Forwarded-For only from internal proxy IPs (Tomcat RemoteIpValve defaults); needed for per-IP rate limiting
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:native}
+
 cors:
   # Comma-separated exact origins
   allowed-origins: ${CORS_ALLOWED_ORIGINS:https://wasiq-project-front.vercel.app}
