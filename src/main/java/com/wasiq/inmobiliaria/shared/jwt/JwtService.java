@@ -19,6 +19,10 @@ import static java.lang.System.currentTimeMillis;
 @RequiredArgsConstructor
 public class JwtService {
 
+    private static final String TOKEN_TYPE_CLAIM = "typ";
+    private static final String ACCESS_TOKEN_TYPE = "access";
+    private static final String REFRESH_TOKEN_TYPE = "refresh";
+
     @Value("${jwt.secret}")
     private String jwtSecret;
 
@@ -54,6 +58,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", getPrimaryRole(userDetails))
+                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
                 .signWith(getSigningKey())
                 .issuedAt(new Date(currentTimeMillis()))
                 .expiration(new Date(currentTimeMillis()+jwtExpiration))
@@ -64,6 +69,7 @@ public class JwtService {
         String username = userDetails.getUsername();
         return Jwts.builder()
                 .subject(username)
+                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
                 .signWith(getSigningKey())
                 .issuedAt(new Date(currentTimeMillis()))
                 .expiration(new Date(currentTimeMillis() + refreshExpiration))
@@ -83,19 +89,22 @@ public class JwtService {
 
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        //* extractUsername devuelve el email del usuario, que es el subject del token */
-        final String username = extractUsername(token);
-
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+    public boolean isAccessTokenValid(String token, UserDetails userDetails) {
+        return isTokenValid(token, userDetails, ACCESS_TOKEN_TYPE);
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    public boolean isRefreshTokenValid(String token, UserDetails userDetails) {
+        return isTokenValid(token, userDetails, REFRESH_TOKEN_TYPE);
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    //* A token is only valid for its own type and while the user remains enabled */
+    private boolean isTokenValid(String token, UserDetails userDetails, String expectedType) {
+        final Claims claims = extractAllClaims(token);
+
+        return userDetails.isEnabled()
+                && userDetails.getUsername().equals(claims.getSubject())
+                && expectedType.equals(claims.get(TOKEN_TYPE_CLAIM, String.class))
+                && !claims.getExpiration().before(new Date());
     }
 
 
