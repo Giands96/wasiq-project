@@ -33,3 +33,5 @@ cloudinary:
 
 admin:
   email: ${ADMIN_EMAIL}
+  # Only used to create the admin on an empty database (min 12 characters)
+  password: ${ADMIN_PASSWORD:}

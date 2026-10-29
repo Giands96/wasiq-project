@@ -4,6 +4,7 @@ import com.wasiq.inmobiliaria.auth.dto.UserResponse;
 import com.wasiq.inmobiliaria.auth.service.AuthService;
 import com.wasiq.inmobiliaria.user.model.enums.Role;
 import com.wasiq.inmobiliaria.user.model.User;
+import com.wasiq.inmobiliaria.user.dto.AdminUserResponse;
 import com.wasiq.inmobiliaria.user.dto.UpdateRoleRequest;
 import com.wasiq.inmobiliaria.user.dto.UpdateUserStatusRequest;
 import com.wasiq.inmobiliaria.user.service.UserService;
@@ -25,27 +26,27 @@ public class UserController {
 
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Page<User>> findAll(Pageable pageable){
+    public ResponseEntity<Page<AdminUserResponse>> findAll(Pageable pageable){
         return ResponseEntity.ok().body(userService.findAllByOrderByIdDesc(
                 pageable.getPageNumber(),
                 pageable.getPageSize()
-        ));
+        ).map(AdminUserResponse::from));
     }
 
     @GetMapping("/id/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<User> findById(@PathVariable Long id){
-        return ResponseEntity.ok().body(userService.getById(id));
+    public ResponseEntity<AdminUserResponse> findById(@PathVariable Long id){
+        return ResponseEntity.ok().body(AdminUserResponse.from(userService.getById(id)));
     }
 
     @GetMapping("/by-role/{role}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Page<User>> findByRole(Pageable pageable, @PathVariable Role role){
+    public ResponseEntity<Page<AdminUserResponse>> findByRole(Pageable pageable, @PathVariable Role role){
         return ResponseEntity.ok().body(userService.findByRole(
                 role,
                 pageable.getPageNumber(),
                 pageable.getPageSize()
-        ));
+        ).map(AdminUserResponse::from));
     }
 
     @PutMapping("/{id}/role")

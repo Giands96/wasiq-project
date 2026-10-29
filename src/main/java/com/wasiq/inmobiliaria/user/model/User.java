@@ -1,5 +1,6 @@
 package com.wasiq.inmobiliaria.user.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wasiq.inmobiliaria.user.model.enums.Role;
 import com.wasiq.inmobiliaria.property.model.Property;
 import jakarta.persistence.*;
@@ -34,6 +35,7 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     @Email
     private String email;
+    @JsonIgnore
     @Column(nullable = false, name = "password")
     private String password;
     @Enumerated(EnumType.STRING)

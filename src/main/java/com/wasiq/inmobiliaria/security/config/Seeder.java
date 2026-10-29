@@ -10,64 +10,53 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.security.SecureRandom;
-import java.util.Base64;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class Seeder implements CommandLineRunner {
+
+    private static final int MIN_ADMIN_PASSWORD_LENGTH = 12;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${admin.email:admin@wasiq.com}")
     private String adminEmail;
 
+    //* Supplied by the operator; credentials are never generated or written to the logs */
+    @Value("${admin.password:}")
+    private String adminPassword;
+
 
     @Override
     public void run(String... args) throws Exception {
 
         // 1. Verificamos si el usuario ya existe en la base de datos
-        if (userRepository.findByEmail(adminEmail).isEmpty()) {
-
-            // 2. Generamos una contraseña aleatoria segura de 12 caracteres
-            String randomPassword = generateSecurePassword(12);
-
-            // 3. Construimos el usuario
-            User admin = User.builder()
-                    .firstName("Super")
-                    .lastName("Admin")
-                    .email(adminEmail)
-                    .password(passwordEncoder.encode(randomPassword)) // Encriptamos la contraseña
-                    .role(Role.ADMIN)
-                    .phoneNumber("+51000000000")
-                    .active(true)
-                    .build();
-
-            // 4. Guardamos en la base de datos
-            userRepository.save(admin);
-
-            // 5. Imprimimos las credenciales en la consola de Spring Boot
-            log.info("=====================================================");
-            log.info("🛡️ ¡USUARIO ADMIN GENERADO AUTOMÁTICAMENTE!");
-            log.info("✉️ Correo: {}", adminEmail);
-            log.info("🔑 Contraseña: {}", randomPassword);
-            log.info("⚠️ GUARDA ESTA CONTRASEÑA. NO SE VOLVERÁ A MOSTRAR.");
-            log.info("=====================================================");
-        } else {
+        if (userRepository.findByEmail(adminEmail).isPresent()) {
             log.info("✅ El usuario admin ya existe en la base de datos. Se omitió la creación.");
+            return;
         }
-    }
 
-    /**
-     * Método auxiliar para generar una contraseña criptográficamente segura
-     */
-    private String generateSecurePassword(int length) {
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] randomBytes = new byte[length];
-        secureRandom.nextBytes(randomBytes);
-        // Usamos Base64 para convertir los bytes en caracteres legibles (A-Z, a-z, 0-9)
-        // Quitamos los caracteres especiales como = o + para evitar problemas al copiar
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes).substring(0, length);
+        // 2. Sin una contraseña configurada no se crea el admin
+        if (adminPassword == null || adminPassword.length() < MIN_ADMIN_PASSWORD_LENGTH) {
+            log.warn("No se creó el usuario admin: definí ADMIN_PASSWORD con al menos {} caracteres.",
+                    MIN_ADMIN_PASSWORD_LENGTH);
+            return;
+        }
+
+        // 3. Construimos el usuario
+        User admin = User.builder()
+                .firstName("Super")
+                .lastName("Admin")
+                .email(adminEmail)
+                .password(passwordEncoder.encode(adminPassword)) // Encriptamos la contraseña
+                .role(Role.ADMIN)
+                .phoneNumber("+51000000000")
+                .active(true)
+                .build();
+
+        // 4. Guardamos en la base de datos
+        userRepository.save(admin);
+        log.info("🛡️ Usuario admin creado: {}", adminEmail);
     }
 }
