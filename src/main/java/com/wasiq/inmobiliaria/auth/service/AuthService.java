@@ -6,6 +6,7 @@ import com.wasiq.inmobiliaria.shared.jwt.JwtService;
 import com.wasiq.inmobiliaria.user.model.enums.Role;
 import com.wasiq.inmobiliaria.user.model.User;
 import com.wasiq.inmobiliaria.user.repository.UserRepository;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -92,10 +93,15 @@ public class AuthService {
             throw new UnauthorizedException("Refresh token not found");
         }
 
-        String userEmail = jwtService.extractUsername(refreshToken);
+        String userEmail;
+        try {
+            userEmail = jwtService.extractUsername(refreshToken);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new UnauthorizedException("Invalid refresh token");
+        }
         User user = getUserByEmail(userEmail);
 
-        if (!jwtService.isTokenValid(refreshToken, user)) {
+        if (!jwtService.isRefreshTokenValid(refreshToken, user)) {
             throw new UnauthorizedException("Invalid refresh token");
         }
 
