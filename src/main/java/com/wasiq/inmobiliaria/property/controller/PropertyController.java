@@ -10,14 +10,12 @@ import com.wasiq.inmobiliaria.property.service.PropertyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
@@ -92,9 +90,6 @@ public class PropertyController {
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
             Authentication authentication) {
 
-        if (files != null && files.size() > 4) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Solo se permiten un máximo de 4 imágenes por propiedad");
-        }
         String email = authentication.getName();
         Property savedProperty = propertyService.savePropertyWithImage(property, files, email);
 
