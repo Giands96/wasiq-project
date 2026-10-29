@@ -1,5 +1,7 @@
 package com.wasiq.inmobiliaria.security;
 
+import com.wasiq.inmobiliaria.security.ratelimit.RateLimitFilter;
+import com.wasiq.inmobiliaria.security.ratelimit.RateLimiter;
 import com.wasiq.inmobiliaria.shared.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +30,11 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final RateLimiter rateLimiter;
+
+    //* Exact origins only: wildcard subdomains on shared hosts (vercel.app) can be claimed by anyone
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
 
     //* Exact origins only: wildcard subdomains on shared hosts (vercel.app) can be claimed by anyone
     @Value("${cors.allowed-origins}")
@@ -79,6 +86,7 @@ public class SecurityConfig {
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
+                .addFilterBefore(new RateLimitFilter(rateLimiter), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
