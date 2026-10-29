@@ -1,6 +1,7 @@
 package com.wasiq.inmobiliaria.auth.exceptions;
 
 import com.wasiq.inmobiliaria.shared.dto.ApiErrorResponse;
+import com.wasiq.inmobiliaria.shared.exceptions.TooManyRequestsException;
 import com.wasiq.inmobiliaria.shared.exceptions.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,13 @@ public class GlobalExceptionHandler {
             UnauthorizedException exception,
             HttpServletRequest request) {
         return buildError(HttpStatus.UNAUTHORIZED, exception.getMessage(), request, null);
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiErrorResponse> handleTooManyRequests(
+            TooManyRequestsException exception,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage(), request, null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -1,6 +1,8 @@
 package com.wasiq.inmobiliaria.auth.service;
 
 import com.wasiq.inmobiliaria.auth.dto.*;
+import com.wasiq.inmobiliaria.security.ratelimit.RateLimiter;
+import com.wasiq.inmobiliaria.shared.exceptions.TooManyRequestsException;
 import com.wasiq.inmobiliaria.shared.exceptions.UnauthorizedException;
 import com.wasiq.inmobiliaria.shared.jwt.JwtService;
 import com.wasiq.inmobiliaria.user.model.enums.Role;
@@ -14,14 +16,22 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.Locale;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    private static final int MAX_LOGIN_ATTEMPTS_PER_CLIENT = 5;
+    private static final int MAX_LOGIN_ATTEMPTS_PER_ACCOUNT = 20;
+    private static final Duration LOGIN_ATTEMPTS_WINDOW = Duration.ofMinutes(15);
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final RateLimiter rateLimiter;
 
     // Metodo Register
     public AuthResponse register(RegisterRequest request) {
@@ -41,12 +51,26 @@ public class AuthService {
                 .build();
     }
 
-    public AuthResponse authenticate(LoginRequest request) {
+    public AuthResponse authenticate(LoginRequest request, String clientIp) {
+        String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
+        //* Strict limit per email+IP, so one attacker cannot lock the real user out from elsewhere
+        String clientAttemptsKey = "login-attempts:" + email + ":" + clientIp;
+        //* Looser limit per email, so guessing spread across many IPs is still capped
+        String accountAttemptsKey = "login-attempts:" + email;
+
+        //* Reserve the attempt atomically before checking the password; concurrent requests cannot exceed the limit
+        if (!rateLimiter.tryConsume(clientAttemptsKey, MAX_LOGIN_ATTEMPTS_PER_CLIENT, LOGIN_ATTEMPTS_WINDOW)
+                || !rateLimiter.tryConsume(accountAttemptsKey, MAX_LOGIN_ATTEMPTS_PER_ACCOUNT, LOGIN_ATTEMPTS_WINDOW)) {
+            throw new TooManyRequestsException("Demasiados intentos fallidos, intenta nuevamente mas tarde");
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()
                 ));
+        rateLimiter.reset(clientAttemptsKey);
+        rateLimiter.reset(accountAttemptsKey);
 
         User user = (User) authentication.getPrincipal();
         return AuthResponse.builder()

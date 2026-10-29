@@ -10,6 +10,7 @@ import com.wasiq.inmobiliaria.auth.service.AuthService;
 import com.wasiq.inmobiliaria.shared.jwt.JwtService;
 import com.wasiq.inmobiliaria.user.model.User;
 import com.wasiq.inmobiliaria.user.model.enums.Role;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -59,8 +60,9 @@ public class    AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse authResponse = authService.authenticate(request);
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
+                                              HttpServletRequest httpRequest) {
+        AuthResponse authResponse = authService.authenticate(request, httpRequest.getRemoteAddr());
         User user = authService.getUserByEmail(request.getEmail());
 
         return ResponseEntity.ok()
