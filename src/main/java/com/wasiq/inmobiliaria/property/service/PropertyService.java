@@ -30,6 +30,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PropertyService {
 
+    //* Upper bound for any page request, so a single call cannot load the whole catalog */
+    public static final int MAX_PAGE_SIZE = 50;
+
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinary;
@@ -142,7 +145,11 @@ public class PropertyService {
 
 
     public Page<Property> findByTitleContaining(String title, int page, int size) {
-        return propertyRepository.findByTitleContainingAndActiveTrue(title,PageRequest.of(page, size));
+        return propertyRepository.findByTitleContainingAndActiveTrue(title, safePage(page, size, Sort.unsorted()));
+    }
+
+    private Pageable safePage(int page, int size, Sort sort) {
+        return PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE), sort);
     }
 
     public Property softDeleteProperty(String slug, String email) {
@@ -184,7 +191,7 @@ public class PropertyService {
             }
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Pageable pageable = safePage(page, size, Sort.by("id").descending());
         Specification<Property> filters = buildPropertyFilters(
                 query, propertyType, operationType, minPrice, maxPrice, rooms, bathrooms
         );
@@ -317,7 +324,7 @@ public class PropertyService {
             }
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Pageable pageable = safePage(page, size, Sort.by("id").descending());
         Specification<Property> filters = buildAdminPropertyFilters(query, propertyType, operationType, available);
 
         return propertyRepository.findAll(filters, pageable);
