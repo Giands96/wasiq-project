@@ -2,7 +2,6 @@ package com.wasiq.inmobiliaria.auth.service;
 
 import com.wasiq.inmobiliaria.auth.dto.AuthResponse;
 import com.wasiq.inmobiliaria.auth.dto.LoginRequest;
-import com.wasiq.inmobiliaria.auth.dto.UpdateUserRequest;
 import com.wasiq.inmobiliaria.security.ratelimit.RateLimiter;
 import com.wasiq.inmobiliaria.shared.exceptions.TooManyRequestsException;
 import com.wasiq.inmobiliaria.shared.exceptions.UnauthorizedException;
@@ -35,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,7 +61,7 @@ class AuthServiceTest {
         ReflectionTestUtils.setField(jwtService, "jwtSecret", SECRET);
         ReflectionTestUtils.setField(jwtService, "jwtExpiration", 900_000L);
         ReflectionTestUtils.setField(jwtService, "refreshExpiration", 2_592_000_000L);
-        authService = new AuthService(passwordEncoder, userRepository, authenticationManager,
+        authService = new AuthService(mock(PasswordEncoder.class), userRepository, authenticationManager,
                 jwtService, new RateLimiter());
 
         user = User.builder().id(1L).email(EMAIL).password("hash").role(Role.USER).active(true).build();
@@ -140,6 +138,10 @@ class AuthServiceTest {
         assertThrows(TooManyRequestsException.class,
                 () -> authService.updateUser(1L, passwordChange("current-password"), user));
         assertEquals("hash", user.getPassword());
+    }
+
+    private LoginRequest login() {
+        return LoginRequest.builder().email(EMAIL).password("wrong-password").build();
     }
 
     private LoginRequest login() {
