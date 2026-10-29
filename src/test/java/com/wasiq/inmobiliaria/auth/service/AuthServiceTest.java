@@ -16,6 +16,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -46,6 +47,7 @@ class AuthServiceTest {
 
     private UserRepository userRepository;
     private AuthenticationManager authenticationManager;
+    private PasswordEncoder passwordEncoder;
     private JwtService jwtService;
     private AuthService authService;
     private User user;
@@ -54,6 +56,7 @@ class AuthServiceTest {
     void setUp() {
         userRepository = mock(UserRepository.class);
         authenticationManager = mock(AuthenticationManager.class);
+        passwordEncoder = mock(PasswordEncoder.class);
         jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "jwtSecret", SECRET);
         ReflectionTestUtils.setField(jwtService, "jwtExpiration", 900_000L);
@@ -63,6 +66,82 @@ class AuthServiceTest {
 
         user = User.builder().id(1L).email(EMAIL).password("hash").role(Role.USER).active(true).build();
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("current-password", "hash")).thenReturn(true);
+        when(passwordEncoder.encode("new-password-123")).thenReturn("new-hash");
+    }
+
+    private UpdateUserRequest passwordChange(String currentPassword) {
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setPassword("new-password-123");
+        request.setCurrentPassword(currentPassword);
+        return request;
+    }
+
+    private void assertRejectedWithBadRequest(UpdateUserRequest request, User actingUser) {
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> authService.updateUser(1L, request, actingUser));
+        assertEquals(400, exception.getStatusCode().value());
+        assertEquals("hash", user.getPassword());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void passwordChangeRequiresCurrentPassword() {
+        assertRejectedWithBadRequest(passwordChange(null), user);
+    }
+
+    @Test
+    void passwordChangeRejectsWrongCurrentPassword() {
+        assertRejectedWithBadRequest(passwordChange("wrong-password"), user);
+    }
+
+    @Test
+    void passwordChangeWithCurrentPasswordUpdatesPassword() {
+        authService.updateUser(1L, passwordChange("current-password"), user);
+
+        assertEquals("new-hash", user.getPassword());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void phoneUpdateDoesNotRequireCurrentPassword() {
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setPhoneNumber("+51 999 111 222");
+
+        authService.updateUser(1L, request, user);
+
+        assertEquals("+51 999 111 222", user.getPhoneNumber());
+        assertEquals("hash", user.getPassword());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void adminChangingAnotherUserPasswordMustConfirmOwnPassword() {
+        User admin = User.builder().id(2L).email("admin@test.com").password("admin-hash")
+                .role(Role.ADMIN).active(true).build();
+        when(passwordEncoder.matches("admin-password", "admin-hash")).thenReturn(true);
+
+        assertRejectedWithBadRequest(passwordChange("current-password"), admin);
+
+        authService.updateUser(1L, passwordChange("admin-password"), admin);
+        assertEquals("new-hash", user.getPassword());
+    }
+
+    @Test
+    void currentPasswordGuessesAreRateLimited() {
+        for (int i = 0; i < 5; i++) {
+            assertThrows(ResponseStatusException.class,
+                    () -> authService.updateUser(1L, passwordChange("wrong-password"), user));
+        }
+
+        assertThrows(TooManyRequestsException.class,
+                () -> authService.updateUser(1L, passwordChange("current-password"), user));
+        assertEquals("hash", user.getPassword());
+    }
+
+    private LoginRequest login() {
+        return LoginRequest.builder().email(EMAIL).password("wrong-password").build();
     }
 
     private LoginRequest login() {
@@ -80,6 +159,14 @@ class AuthServiceTest {
     void refreshRejectsDisabledUser() {
         String refreshToken = jwtService.generateRefreshToken(user);
         user.setActive(false);
+
+        assertThrows(UnauthorizedException.class, () -> authService.refreshToken(refreshToken));
+    }
+
+    @Test
+    void refreshRejectsTokenIssuedBeforePasswordChange() {
+        String refreshToken = jwtService.generateRefreshToken(user);
+        authService.updateUser(1L, passwordChange("current-password"), user);
 
         assertThrows(UnauthorizedException.class, () -> authService.refreshToken(refreshToken));
     }

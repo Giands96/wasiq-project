@@ -55,6 +55,17 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    void tokenIssuedBeforePasswordChangeDoesNotAuthenticate() throws Exception {
+        User user = JwtServiceTest.user(true);
+        String token = jwtService.generateToken(user);
+        user.setPassword("new-hash");
+
+        filterWithCookie(user, token);
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    @Test
     void disabledUserIsNotAuthenticated() throws Exception {
         User user = JwtServiceTest.user(true);
         String token = jwtService.generateToken(user);
