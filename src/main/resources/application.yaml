@@ -11,6 +11,10 @@ spring:
       ddl-auto: validate
     show-sql: false
 
+cors:
+  # Comma-separated exact origins
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://wasiq-project-front.vercel.app}
+
 jwt:
   secret: ${JWT_SECRET}
   # 15 minutes, aligned with the access-token cookie max age
