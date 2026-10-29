@@ -4,6 +4,7 @@ import com.wasiq.inmobiliaria.cloudinary.CloudinaryService;
 import com.wasiq.inmobiliaria.shared.dto.CreatePropertyRequest;
 import com.wasiq.inmobiliaria.shared.dto.UpdatePropertyRequest;
 import com.wasiq.inmobiliaria.shared.exceptions.UnauthorizedException;
+import com.wasiq.inmobiliaria.media.ImageFiles;
 import com.wasiq.inmobiliaria.media.Media;
 import com.wasiq.inmobiliaria.property.enums.OperationType;
 import com.wasiq.inmobiliaria.property.enums.PropertyType;
@@ -21,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -42,11 +45,12 @@ public class PropertyService {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new RuntimeException("Property not found"));
 
+        String contentType = ImageFiles.detectContentType(file);
         String url = cloudinary.uploadFile(file);
 
         Media newMedia = Media.builder()
                 .url(url)
-                .type(file.getContentType())
+                .type(contentType)
                 .property(property)
                 .build();
 
@@ -61,6 +65,10 @@ public class PropertyService {
 
     @Transactional
     public Property savePropertyWithImage(CreatePropertyRequest request, List<MultipartFile> files, String email) {
+        List<MultipartFile> newFiles = files == null ? List.of() : files;
+        ImageFiles.requireWithinLimit(newFiles.size());
+        ImageFiles.requireSupportedImages(newFiles);
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Property property = buildProperty(request);
@@ -90,22 +98,48 @@ public class PropertyService {
             throw new UnauthorizedException("You are not the owner of this property");
         }
 
-        applyUpdate(request, existingProperty);
-
         List<Long> idsKept = keptImageIds == null ? new ArrayList<>() : keptImageIds;
-        if (existingProperty.getImages() != null) {
-            existingProperty.getImages().removeIf(image -> !idsKept.contains(image.getId()));
+        if (existingProperty.getImages() == null) {
+            existingProperty.setImages(new ArrayList<>());
         }
+        List<Media> currentImages = existingProperty.getImages();
+        List<Media> removedImages = currentImages.stream()
+                .filter(image -> !idsKept.contains(image.getId()))
+                .toList();
+        List<MultipartFile> newFiles = files == null ? List.of() : files;
+        //* Validate everything before mutating the property or uploading anything */
+        ImageFiles.requireWithinLimit(currentImages.size() - removedImages.size() + newFiles.size());
+        ImageFiles.requireSupportedImages(newFiles);
+
+        applyUpdate(request, existingProperty);
+        currentImages.removeAll(removedImages);
 
         Property savedProperty = propertyRepository.save(existingProperty);
 
-        if (files != null && !files.isEmpty()) {
-           for(MultipartFile file : files) {
-               uploadImage(savedProperty.getId(), file);
-           }
+        for (MultipartFile file : newFiles) {
+            uploadImage(savedProperty.getId(), file);
         }
 
-        return propertyRepository.save(existingProperty);
+        Property result = propertyRepository.save(existingProperty);
+        deleteFromCloudinaryAfterCommit(removedImages.stream().map(Media::getUrl).toList());
+        return result;
+    }
+
+    //* Replaced images are removed from Cloudinary only once the database change is committed */
+    private void deleteFromCloudinaryAfterCommit(List<String> urls) {
+        if (urls.isEmpty()) {
+            return;
+        }
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            urls.forEach(cloudinary::deleteFile);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                urls.forEach(cloudinary::deleteFile);
+            }
+        });
     }
 
     private Property buildProperty(CreatePropertyRequest request) {
